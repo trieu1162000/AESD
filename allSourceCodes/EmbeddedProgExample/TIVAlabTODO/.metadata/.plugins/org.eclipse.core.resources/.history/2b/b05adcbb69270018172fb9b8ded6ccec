@@ -1,0 +1,103 @@
+#include <command.h>
+
+#include "cmdline.h"
+#include "uartstdio.h"
+tCmdLineEntry g_sCmdTable[] =
+{
+    { "help",   Cmd_help,      " : Display list of commands" },
+    { "SETRGBLED",      setRGBLED,   "    : set colour of RGB LED" },
+    { "SETLIGHT",     setLight,      "   : set light level" },
+		{ "SETALL",  setAllLight,         ": set all light channel" },
+    { "CONTROLRELAY",  controlRelay,         ": Control the relay" },
+
+    { 0, 0, 0 }
+};
+
+int
+Cmd_help(int argc, char *argv[])
+{
+      tCmdLineEntry *pEntry;
+
+    // Print some header text.
+    UARTprintf("\nAvailable commands\r\n");
+    UARTprintf("------------------\r\n");
+
+    // Point at the beginning of the command table.
+    pEntry = &g_sCmdTable[0];
+
+    // Enter a loop to read each entry from the command table.  The
+    // end of the table has been reached when the command name is NULL.
+    while(pEntry->pcCmd)
+    {
+        // Print the command name and the brief description.
+        UARTprintf("%s%s\n", pEntry->pcCmd, pEntry->pcHelp);
+
+        // Advance to the next entry in the table.
+        pEntry++;
+
+
+    }
+
+    // Return success.
+    return(0);
+}
+/*
+command: SETRGBLED	number RED	GREEN	BLUE	(number = 0-1)
+					SETRGBLED	0 FF	00	1A
+
+*/
+int
+setRGBLED(int argc, char *argv[])
+{
+	if (argc < 5) return 1;
+    	return(update_color(CHARTOBIN(*argv[1]) ,CHAR2TOBIN(argv[2]),CHAR2TOBIN(argv[3]),CHAR2TOBIN(argv[4])));
+
+}
+
+/*
+command: SETLIGHT	channel level	(level from 00-FF, channel = 0-F)
+					SETLIGHT	F 80
+
+*/
+
+int
+setLight(int argc, char *argv[])
+{
+	if (argc < 3) return 1;
+  return (setADCChannel(CHARTOBIN(*argv[1]) ,CHAR2TOBIN(argv[2])));
+
+}
+
+int
+setAllLight(int argc, char *argv[])
+{
+	if (argc < 2) return 1;
+   broadcastADCOutput(CHAR2TOBIN(argv[1]));
+
+	return 0;
+}
+
+
+/*
+command: CONTROLRELAY	channel state	(state is ON-OFF, channel = 0-3)
+					CONTROLRELAY	0 ON
+*/
+int
+controlRelay(int argc, char *argv[])
+{
+	unsigned char number;
+	if (argc != 3) return 1;
+	number = CHARTOBIN(*argv[1]);
+	if (number > 3) return 1;
+ if(my_strcmp( "ON", argv[2]) == 0)
+            {
+                onRelay(CHARTOBIN(*argv[1]));
+							return 0;
+            }
+	else if (my_strcmp( "OFF", argv[2]) == 0)
+            {
+                offRelay(CHARTOBIN(*argv[1]));
+							return 0;
+            }
+						return 1;	//error
+}

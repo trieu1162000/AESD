@@ -1,0 +1,15 @@
+/*
+ * ledRedStateMachine.h
+ *
+ *  Created on: Mar 16, 2018
+ *      Author: Quoc Bao
+ */
+
+#ifndef LEDGREENSTATEMACHINE_H_
+#define LEDGREENSTATEMACHINE_H_
+
+
+
+void ledRedStateMachineUpdate(void);
+
+#endif /* LEDGREENSTATEMACHINE_H_ */

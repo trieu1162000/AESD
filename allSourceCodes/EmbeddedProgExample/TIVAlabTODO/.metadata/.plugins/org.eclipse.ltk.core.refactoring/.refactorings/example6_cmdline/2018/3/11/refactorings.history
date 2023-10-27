@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;example6_cmdline/serial.c&apos; to &apos;command.c&apos;" description="Rename resource &apos;serial.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="serial.c" name="command.c" stamp="1521016057535" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;example6_cmdline/serial.h&apos; to &apos;command.h&apos;" description="Rename resource &apos;serial.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="serial.h" name="command.h" stamp="1521016067131" updateReferences="true"/>
+</session>

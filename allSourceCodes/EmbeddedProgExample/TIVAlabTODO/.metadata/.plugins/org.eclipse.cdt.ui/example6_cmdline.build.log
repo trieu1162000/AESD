@@ -1,0 +1,30 @@
+
+**** Build of configuration Debug for project example6_cmdline ****
+
+"C:\\ti\\ccsv7\\utils\\bin\\gmake" -k -j 4 all -O 
+ 
+'Building file: "../command.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="D:/BAO/EmbeddedProgExample/TVALab/example6_cmdline" --include_path="C:/ti/TivaWare_C_Series-2.1.4.178" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="command.d_raw"  "../command.c"
+"../command.c", line 53: warning #225-D: function "update_color" declared implicitly
+"../command.c", line 53: warning #225-D: function "CHARTOBIN" declared implicitly
+"../command.c", line 53: warning #225-D: function "CHAR2TOBIN" declared implicitly
+"../command.c", line 67: warning #225-D: function "setADCChannel" declared implicitly
+"../command.c", line 67: warning #225-D: function "CHARTOBIN" declared implicitly
+"../command.c", line 67: warning #225-D: function "CHAR2TOBIN" declared implicitly
+"../command.c", line 75: warning #225-D: function "broadcastADCOutput" declared implicitly
+"../command.c", line 75: warning #225-D: function "CHAR2TOBIN" declared implicitly
+"../command.c", line 90: warning #225-D: function "CHARTOBIN" declared implicitly
+"../command.c", line 92: warning #225-D: function "my_strcmp" declared implicitly
+"../command.c", line 94: warning #225-D: function "onRelay" declared implicitly
+"../command.c", line 99: warning #225-D: function "offRelay" declared implicitly
+'Finished building: "../command.c"'
+ 
+'Building target: "example6_cmdline.out"'
+'Invoking: ARM Linker'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"example6_cmdline.map" --heap_size=0 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="example6_cmdline_linkInfo.xml" --rom_model -o "example6_cmdline.out" "./cmdline.obj" "./command.obj" "./main.obj" "./tm4c123gh6pm_startup_ccs.obj" "./uartstdio.obj" "C:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ccs/Debug/driverlib.lib" "../tm4c123gh6pm.cmd"  -llibc.a 
+<Linking>
+'Finished building target: "example6_cmdline.out"'
+ 
+
+**** Build Finished ****

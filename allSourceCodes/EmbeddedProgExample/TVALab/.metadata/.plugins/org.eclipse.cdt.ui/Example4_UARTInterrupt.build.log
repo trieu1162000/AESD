@@ -1,0 +1,18 @@
+
+**** Build of configuration Debug for project Example4_UARTInterrupt ****
+
+"C:\\ti\\ccsv7\\utils\\bin\\gmake" -k -j 4 all -O 
+ 
+'Building file: "../uart.c"'
+'Invoking: ARM Compiler'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="D:/BAO/EmbeddedProgExample/TVALab/Example4_UARTInterrupt" --include_path="C:/ti/TivaWare_C_Series-2.1.4.178" --include_path="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="uart.d_raw"  "../uart.c"
+'Finished building: "../uart.c"'
+ 
+'Building target: "Example4_UARTInterrupt.out"'
+'Invoking: ARM Linker'
+"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"Example4_UARTInterrupt.map" --heap_size=0 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_17.9.0.STS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Example4_UARTInterrupt_linkInfo.xml" --rom_model -o "Example4_UARTInterrupt.out" "./main.obj" "./tm4c123gh6pm_startup_ccs.obj" "./uart.obj" "C:/ti/TivaWare_C_Series-2.1.4.178/driverlib/ccs/Debug/driverlib.lib" "../tm4c123gh6pm.cmd"  -llibc.a 
+<Linking>
+'Finished building target: "Example4_UARTInterrupt.out"'
+ 
+
+**** Build Finished ****

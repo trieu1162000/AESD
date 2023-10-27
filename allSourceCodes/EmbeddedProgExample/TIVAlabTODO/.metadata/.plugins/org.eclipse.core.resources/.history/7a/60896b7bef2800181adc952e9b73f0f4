@@ -1,0 +1,19 @@
+/*
+ * switches.h
+ *
+ *  Created on: Mar 16, 2018
+ *      Author: Quoc Bao
+ */
+
+#ifndef SWITCHES_H_
+#define SWITCHES_H_
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/gpio.h"
+
+
+
+
+#endif /* SWITCHES_H_ */

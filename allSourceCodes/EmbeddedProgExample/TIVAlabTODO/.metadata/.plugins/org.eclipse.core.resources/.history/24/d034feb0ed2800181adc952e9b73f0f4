@@ -1,0 +1,18 @@
+/*
+ * ledRedStateMachine.c
+ *
+ *  Created on: Mar 16, 2018
+ *      Author: Quoc Bao
+ */
+
+#include "ledRedStateMachine.h"
+#include "driverlib/gpio.h"
+
+typedef     enum {S_LEDON,S_LEDOFF}  ledRState_t;
+
+static ledRState_t State = S_LEDOFF;
+
+int SW1Status(void)
+{
+
+}

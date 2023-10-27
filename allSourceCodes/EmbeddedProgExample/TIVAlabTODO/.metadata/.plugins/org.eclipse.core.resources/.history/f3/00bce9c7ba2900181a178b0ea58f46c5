@@ -1,0 +1,13 @@
+/*
+ * task.c
+ *
+ *  Created on: Mar 17, 2018
+ *      Author: Quoc Bao
+ */
+#include "task.h"
+
+ tSchedulerTask g_psSchedulerTable[1] = {ledRedTask,(void *),50,0,1
+
+                                         };
+
+ uint32_t g_ui32SchedulerNumTasks = 1;
