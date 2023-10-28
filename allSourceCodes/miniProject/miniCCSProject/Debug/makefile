@@ -12,6 +12,7 @@ GEN_CMDS__FLAG :=
 ORDERED_OBJS += \
 "./main.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
+"./uartstdio.obj" \
 "./my_libs/src/configure_peripherals_api.obj" \
 "./my_libs/src/rc522_api.obj" \
 "./my_libs/src/uart_api.obj" \
@@ -141,15 +142,15 @@ all: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 miniCCSProject.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"miniCCSProject.map" --heap_size=0 --stack_size=512 -i"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/lib" -i"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="miniCCSProject_linkInfo.xml" --rom_model -o "miniCCSProject.out" $(ORDERED_OBJS)
+	"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"miniCCSProject.map" --heap_size=4000 --stack_size=4000 -i"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/lib" -i"E:/Apps/ti/ccs1250/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="miniCCSProject_linkInfo.xml" --rom_model -o "miniCCSProject.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "main.obj" "tm4c123gh6pm_startup_ccs.obj" "my_libs\src\configure_peripherals_api.obj" "my_libs\src\rc522_api.obj" "my_libs\src\uart_api.obj" 
-	-$(RM) "main.d" "tm4c123gh6pm_startup_ccs.d" "my_libs\src\configure_peripherals_api.d" "my_libs\src\rc522_api.d" "my_libs\src\uart_api.d" 
+	-$(RM) "main.obj" "tm4c123gh6pm_startup_ccs.obj" "uartstdio.obj" "my_libs\src\configure_peripherals_api.obj" "my_libs\src\rc522_api.obj" "my_libs\src\uart_api.obj" 
+	-$(RM) "main.d" "tm4c123gh6pm_startup_ccs.d" "uartstdio.d" "my_libs\src\configure_peripherals_api.d" "my_libs\src\rc522_api.d" "my_libs\src\uart_api.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

@@ -12,16 +12,26 @@ void enablePeriphs(void){
 }
 
 void configureSPI(void){
+    uint32_t junkAuxVar;
 
     // TBD. Need to accordingly change Port and Pins.
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-    GPIOPinConfigure(GPIO_PA2_SSI0CLK);
-    GPIOPinConfigure(GPIO_PA3_SSI0FSS);
-    GPIOPinConfigure(GPIO_PA5_SSI0TX);
-    GPIOPinTypeSSI(GPIO_PORTA_BASE,GPIO_PIN_5|GPIO_PIN_3|GPIO_PIN_2);
-    SSIConfigSetExpClk(SSI0_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 1000000, 8);
-    SSIEnable(SSI0_BASE);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI3);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+
+    GPIOPinConfigure(GPIO_PD0_SSI3CLK);
+//    GPIOPinConfigure(GPIO_PD1_SSI3FSS);
+    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_1); // CS Pin
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_1); // RST Pin
+    GPIOPinConfigure(GPIO_PD2_SSI3RX);
+    GPIOPinConfigure(GPIO_PD3_SSI3TX);
+    GPIOPinTypeSSI(GPIO_PORTD_BASE, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_0);
+    SSIConfigSetExpClk(SSI3_BASE, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, 4000000, 8);
+
+    SSIEnable(SSI3_BASE);
+
+    while(SSIDataGetNonBlocking(SSI3_BASE, &junkAuxVar)){}
+
 }
 
 

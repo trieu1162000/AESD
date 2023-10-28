@@ -1,5 +1,6 @@
 "./main.obj"
 "./tm4c123gh6pm_startup_ccs.obj"
+"./uartstdio.obj"
 "./my_libs/src/configure_peripherals_api.obj"
 "./my_libs/src/rc522_api.obj"
 "./my_libs/src/uart_api.obj"

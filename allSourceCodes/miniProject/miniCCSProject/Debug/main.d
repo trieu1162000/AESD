@@ -21,6 +21,7 @@ main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/inc/hw_types.h
 main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/gpio.h
 main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/pin_map.h
 main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/sysctl.h
+main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/utils/uartstdio.h
 main.obj: ../my_libs/inc/config_peripherals_api.h
 main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/ssi.h
 main.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/uart.h
@@ -68,6 +69,8 @@ E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/gpio.h:
 E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/pin_map.h:
 
 E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/sysctl.h:
+
+E:/Apps/ti/TivaWare_C_Series-2.2.0.295/utils/uartstdio.h:
 
 ../my_libs/inc/config_peripherals_api.h:
 

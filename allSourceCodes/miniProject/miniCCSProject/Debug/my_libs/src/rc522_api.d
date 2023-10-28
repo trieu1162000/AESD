@@ -23,6 +23,7 @@ my_libs/src/rc522_api.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/pin_
 my_libs/src/rc522_api.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/ssi.h
 my_libs/src/rc522_api.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/sysctl.h
 my_libs/src/rc522_api.obj: E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/uart.h
+my_libs/src/rc522_api.obj: ../my_libs/inc/uart_api.h
 
 ../my_libs/src/rc522_api.c:
 
@@ -69,4 +70,6 @@ E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/ssi.h:
 E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/sysctl.h:
 
 E:/Apps/ti/TivaWare_C_Series-2.2.0.295/driverlib/uart.h:
+
+../my_libs/inc/uart_api.h:
 

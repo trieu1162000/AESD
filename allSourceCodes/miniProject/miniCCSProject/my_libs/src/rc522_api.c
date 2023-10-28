@@ -17,6 +17,7 @@
 // VCC                3.3V                      3.3V power
 
 #include "../inc/rc522_api.h"
+#include "../inc/uart_api.h"
 
 static void lowCSPin(void){
     GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
@@ -28,6 +29,18 @@ static void highCSPin(void){
 
 }
 
+static uint8_t spiTransfer(uint8_t data){
+    uint32_t rxtxData;
+    rxtxData = data;
+
+    SSIDataPut(SSI3_BASE, (uint8_t) rxtxData);
+
+    while(SSIBusy(SSI3_BASE));
+
+    SSIDataGet(SSI3_BASE, &rxtxData);
+
+    return (uint8_t) rxtxData;
+}
 /*
  * Function: rc522WriteRaw
  * Description: write a byte data into one register of MFRC522
@@ -40,10 +53,12 @@ static void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue) {
     lowCSPin();
     ucAddr = ((ucAddress << 1) & 0x7E);
 
-    SSIDataPut(SSI3_BASE, ucAddr);
-    SSIDataPut(SSI3_BASE, ucValue);
-    while(SSIBusy(SSI3_BASE)){
-    }
+//    SSIDataPut(SSI3_BASE, ucAddr);
+//    SSIDataPut(SSI3_BASE, ucValue);
+    spiTransfer(ucAddr);
+    spiTransfer(ucValue);
+//    while(SSIBusy(SSI3_BASE)){
+//    }
 
     highCSPin();
 }
@@ -56,24 +71,25 @@ static void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue) {
  */
 static uint8_t rc522ReadRaw(uint8_t ucAddress) {
     uint8_t ucValue, ucAddr;
-    int ret;
 
     lowCSPin();
-    ucAddr = ((ucAddress << 1) & 0x7E) | 0x80;
-    SSIDataPut(SSI3_BASE, ucAddr);
-    SSIDataGet(SSI3_BASE, &ucValue);
-    while(SSIBusy(SSI3_BASE)){
-    }
+    ucAddr = (((ucAddress << 1) & 0x7E) | 0x80);
+//    SSIDataPut(SSI3_BASE, ucAddr);
+//    SSIDataGet(SSI3_BASE, (uint32_t *) &ucValue);
+
+    spiTransfer(ucAddr);
+    ucValue = spiTransfer(0x00);
+
     highCSPin();
 
     return ucValue;
 }
 
-static uint8_t rc522Check(uint8_t* id) {
-    uint8_t status;
+int8_t rc522Check(uint8_t* id) {
+    int8_t status;
 
     status = rc522Request(PICC_REQIDL, id); // Find cards, return card type
-    if (status == MI_OK) {
+    if (status == MI_OK)
         status = rc522Anticoll(id); // Card detected. Anti-collision, return card serial number 4 bytes
     rc522Halt(); // Command card into hibernation 
     return status;
@@ -111,8 +127,8 @@ static void rc522ClearBitMask(uint8_t reg, uint8_t mask){
  *                  0x4403 = Mifare_DESFire
  * return: MI_OK if successed
  */
-static uint8_t rc522Request(uint8_t reqMode, uint8_t* tagType) {
-    uint8_t status;
+int8_t rc522Request(uint8_t reqMode, uint8_t* tagType) {
+    int8_t status;
     uint16_t backBits; // The received data bits
 
     rc522WriteRaw(RC522_REG_BIT_FRAMING, 0x07); // TxLastBists = BitFramingReg[2..0]
@@ -121,7 +137,7 @@ static uint8_t rc522Request(uint8_t reqMode, uint8_t* tagType) {
     if ((status != MI_OK) || (backBits != 0x10)) 
     {
         status = MI_ERR;
-        UARTStringPut("rc522Request: Fail to call rc522ToCard Func\n");
+//        UARTStringPut(UART0_BASE, "rc522Request: Fail to call rc522ToCard Func\r\n");
     }
 
     return status;
@@ -138,8 +154,8 @@ static uint8_t rc522Request(uint8_t reqMode, uint8_t* tagType) {
  *             backLen--the length of return data
  * Return: return MI_OK if successed
  */
-static uint8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, uint8_t* backData, uint16_t* backLen) {
-    uint8_t status = MI_ERR;
+static int8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, uint8_t* backData, uint16_t* backLen) {
+    int8_t status = MI_ERR;
     uint8_t irqEn = 0x00;
     uint8_t waitIRq = 0x00;
     uint8_t lastBits;
@@ -158,7 +174,7 @@ static uint8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, 
             break;
         }
         default:
-        break;
+            break;
     }
 
     rc522WriteRaw(RC522_REG_COMM_IE_N, irqEn | 0x80);
@@ -176,7 +192,7 @@ static uint8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, 
         rc522SetBitMask(RC522_REG_BIT_FRAMING, 0x80); // StartSend=1,transmission of data starts
 
     // Waiting to receive data to complete
-    i = 2000; // i according to the clock frequency adjustment, the operator M1 card maximum waiting time 25ms
+    i = 10000; // i according to the clock frequency adjustment, the operator M1 card maximum waiting time 25ms
     do {
         // CommIrqReg[7..0]
         // Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
@@ -210,7 +226,7 @@ static uint8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, 
             }
         } else {
             status = MI_ERR;
-            UARTStringPut("rc522ToCard: MI_ERR with rc522ReadRaw Func\n");
+//            UARTStringPut(UART0_BASE, "rc522ToCard: MI_ERR with rc522ReadRaw Func\r\n");
         }
     }
     return status;
@@ -222,8 +238,8 @@ static uint8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, 
  * Input parameter: serNum--return the 4 bytes card serial number, the 5th byte is recheck byte
  * Return: return MI_OK if successed
  */
-static uint8_t rc522Anticoll(uint8_t* serNum) {
-    uint8_t status;
+int8_t rc522Anticoll(uint8_t* serNum) {
+    int8_t status;
     uint8_t i;
     uint8_t serNumCheck = 0;
     uint16_t unLen;
@@ -281,9 +297,9 @@ static void rc522CalculateCRC(uint8_t*  pIndata, uint8_t len, uint8_t* pOutData)
  * Input parameter: serNum--Send card serial number
  * Return: return the card storage volume
  */
-static uint8_t rc522SelectTag(uint8_t* serNum) {
+static int8_t rc522SelectTag(uint8_t* serNum) {
     uint8_t i;
-    uint8_t status;
+    int8_t status;
     uint8_t size;
     uint16_t recvBits;
     uint8_t buffer[9]; 
@@ -314,8 +330,8 @@ static uint8_t rc522SelectTag(uint8_t* serNum) {
                     serNum--Card serial number ，4 bytes
  * Return: return MI_OK if successed
  */
-static uint8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
-    uint8_t status;
+static int8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
+    int8_t status;
     uint16_t recvBits;
     uint8_t i;
     uint8_t buff[12]; 
@@ -341,8 +357,8 @@ static uint8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey
  * Input parameters:blockAddr--block address;recvData--the block data which are read
  * Return: return MI_OK if successed
  */
-static uint8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData) {
-    uint8_t status;
+static int8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData) {
+    int8_t status;
     uint16_t unLen;
 
     recvData[0] = PICC_READ;
@@ -363,8 +379,8 @@ static uint8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData) {
  * Input parameters:blockAddr--block address;writeData--Write 16 bytes data into block
  * Return: return MI_OK if successed
  */
-static uint8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
-    uint8_t status;
+static int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
+    int8_t status;
     uint16_t recvBits;
     uint8_t i;
     uint8_t buff[18]; 
@@ -400,19 +416,22 @@ static uint8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
 void rc522Init(void) {
     unsigned char a;
 
+    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
+    GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_1, HIGH_PIN);
     rc522Reset();
     rc522WriteRaw(RC522_REG_T_MODE, 0x8D);
     rc522WriteRaw(RC522_REG_T_PRESCALER, 0x3E);
     rc522WriteRaw(RC522_REG_T_RELOAD_L, 30);
     rc522WriteRaw(RC522_REG_T_RELOAD_H, 0);
-    rc522WriteRaw(RC522_REG_RF_CFG, 0x70); // 48dB gain
+//    rc522WriteRaw(RC522_REG_RF_CFG, 0x70); // 48dB gain
     rc522WriteRaw(RC522_REG_TX_AUTO, 0x40);
     rc522WriteRaw(RC522_REG_MODE, 0x3D);
     a = rc522ReadRaw(RC522_REG_T_RELOAD_L);
     if(a != 30)
-        UARTStringPut("rc522Init: No RC522 detected - %d\n",a);
+        UARTStringPut(UART0_BASE, "rc522Init: No RC522 detected\r\n");
     else
-        UARTStringPut("rc522Init: RC522 exist\n");
+        UARTStringPut(UART0_BASE, "rc522Init: RC522 exist\r\n");
+//    rc522AntennaOff();
     rc522AntennaOn(); // Open the antenna
 }
 
