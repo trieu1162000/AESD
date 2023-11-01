@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v20.2.7                     
 ******************************************************************************
->> Linked Wed Oct 18 23:37:47 2023
+>> Linked Mon Oct 30 20:03:44 2023
 
 OUTPUT FILE NAME:   <exercise1.out>
 ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 000006c9
