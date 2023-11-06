@@ -21,5 +21,10 @@ namespace projectGUIApp
         {
 
         }
+
+        private void editCardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

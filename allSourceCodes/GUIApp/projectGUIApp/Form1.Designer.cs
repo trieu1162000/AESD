@@ -29,6 +29,7 @@ namespace projectGUIApp
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.monitorListGrpBx = new System.Windows.Forms.GroupBox();
             this.monitorListView = new System.Windows.Forms.ListView();
@@ -37,18 +38,21 @@ namespace projectGUIApp
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.comStatusGrpBx = new System.Windows.Forms.GroupBox();
+            this.rtxtbComStatus = new System.Windows.Forms.RichTextBox();
             this.mnstrHomeScr = new System.Windows.Forms.MenuStrip();
             this.communicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aGVsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addRemoveAGVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.agvMonitoringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.warehouseDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cardManagerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newCardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteCardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editCardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dataManagerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.reportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.operationManualToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rtxtbComStatus = new System.Windows.Forms.RichTextBox();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.monitorListGrpBx.SuspendLayout();
             this.comStatusGrpBx.SuspendLayout();
             this.mnstrHomeScr.SuspendLayout();
@@ -81,7 +85,8 @@ namespace projectGUIApp
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4,
-            this.columnHeader5});
+            this.columnHeader5,
+            this.columnHeader6});
             this.monitorListView.Font = new System.Drawing.Font("Segoe UI", 9.25F);
             this.monitorListView.HideSelection = false;
             this.monitorListView.Location = new System.Drawing.Point(11, 26);
@@ -101,7 +106,7 @@ namespace projectGUIApp
             // 
             this.columnHeader2.Text = "Name";
             this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader2.Width = 280;
+            this.columnHeader2.Width = 250;
             // 
             // columnHeader3
             // 
@@ -113,13 +118,18 @@ namespace projectGUIApp
             // 
             this.columnHeader4.Text = "I/O";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader4.Width = 87;
+            this.columnHeader4.Width = 100;
             // 
             // columnHeader5
             // 
             this.columnHeader5.Text = "Time";
             this.columnHeader5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader5.Width = 200;
+            this.columnHeader5.Width = 90;
+            // 
+            // columnHeader6
+            // 
+            this.columnHeader6.Text = "Date";
+            this.columnHeader6.Width = 130;
             // 
             // comStatusGrpBx
             // 
@@ -137,6 +147,19 @@ namespace projectGUIApp
             this.comStatusGrpBx.TabStop = false;
             this.comStatusGrpBx.Text = "Communication Status";
             // 
+            // rtxtbComStatus
+            // 
+            this.rtxtbComStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxtbComStatus.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.rtxtbComStatus.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.rtxtbComStatus.Font = new System.Drawing.Font("Segoe UI", 11.25F);
+            this.rtxtbComStatus.Location = new System.Drawing.Point(11, 26);
+            this.rtxtbComStatus.Name = "rtxtbComStatus";
+            this.rtxtbComStatus.Size = new System.Drawing.Size(760, 144);
+            this.rtxtbComStatus.TabIndex = 6;
+            this.rtxtbComStatus.Text = "";
+            // 
             // mnstrHomeScr
             // 
             this.mnstrHomeScr.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
@@ -144,8 +167,8 @@ namespace projectGUIApp
             this.mnstrHomeScr.GripStyle = System.Windows.Forms.ToolStripGripStyle.Visible;
             this.mnstrHomeScr.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.communicationToolStripMenuItem,
-            this.aGVsToolStripMenuItem,
-            this.warehouseDataToolStripMenuItem,
+            this.cardManagerToolStripMenuItem,
+            this.dataManagerToolStripMenuItem,
             this.reportToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.mnstrHomeScr.Location = new System.Drawing.Point(0, 0);
@@ -163,36 +186,45 @@ namespace projectGUIApp
             this.communicationToolStripMenuItem.Size = new System.Drawing.Size(134, 23);
             this.communicationToolStripMenuItem.Text = "&Communication";
             // 
-            // aGVsToolStripMenuItem
+            // cardManagerToolStripMenuItem
             // 
-            this.aGVsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addRemoveAGVToolStripMenuItem,
-            this.agvMonitoringToolStripMenuItem});
-            this.aGVsToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("aGVsToolStripMenuItem.Image")));
-            this.aGVsToolStripMenuItem.Name = "aGVsToolStripMenuItem";
-            this.aGVsToolStripMenuItem.Size = new System.Drawing.Size(125, 23);
-            this.aGVsToolStripMenuItem.Text = "&Card Manager";
+            this.cardManagerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.newCardToolStripMenuItem,
+            this.deleteCardToolStripMenuItem,
+            this.editCardToolStripMenuItem});
+            this.cardManagerToolStripMenuItem.Image = global::projectGUIApp.Properties.Resources.icon_card;
+            this.cardManagerToolStripMenuItem.Name = "cardManagerToolStripMenuItem";
+            this.cardManagerToolStripMenuItem.Size = new System.Drawing.Size(125, 23);
+            this.cardManagerToolStripMenuItem.Text = "&Card Manager";
             // 
-            // addRemoveAGVToolStripMenuItem
+            // newCardToolStripMenuItem
             // 
-            this.addRemoveAGVToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("addRemoveAGVToolStripMenuItem.Image")));
-            this.addRemoveAGVToolStripMenuItem.Name = "addRemoveAGVToolStripMenuItem";
-            this.addRemoveAGVToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
-            this.addRemoveAGVToolStripMenuItem.Text = "&Add/Remove AGV";
+            this.newCardToolStripMenuItem.Image = global::projectGUIApp.Properties.Resources.icon_add;
+            this.newCardToolStripMenuItem.Name = "newCardToolStripMenuItem";
+            this.newCardToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.newCardToolStripMenuItem.Text = "&New Card";
             // 
-            // agvMonitoringToolStripMenuItem
+            // deleteCardToolStripMenuItem
             // 
-            this.agvMonitoringToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("agvMonitoringToolStripMenuItem.Image")));
-            this.agvMonitoringToolStripMenuItem.Name = "agvMonitoringToolStripMenuItem";
-            this.agvMonitoringToolStripMenuItem.Size = new System.Drawing.Size(189, 24);
-            this.agvMonitoringToolStripMenuItem.Text = "&Monitoring";
+            this.deleteCardToolStripMenuItem.Image = global::projectGUIApp.Properties.Resources.icon_remove;
+            this.deleteCardToolStripMenuItem.Name = "deleteCardToolStripMenuItem";
+            this.deleteCardToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.deleteCardToolStripMenuItem.Text = "&Delete Card";
             // 
-            // warehouseDataToolStripMenuItem
+            // editCardToolStripMenuItem
             // 
-            this.warehouseDataToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("warehouseDataToolStripMenuItem.Image")));
-            this.warehouseDataToolStripMenuItem.Name = "warehouseDataToolStripMenuItem";
-            this.warehouseDataToolStripMenuItem.Size = new System.Drawing.Size(125, 23);
-            this.warehouseDataToolStripMenuItem.Text = "&Data Manager";
+            this.editCardToolStripMenuItem.Image = global::projectGUIApp.Properties.Resources.edit;
+            this.editCardToolStripMenuItem.Name = "editCardToolStripMenuItem";
+            this.editCardToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
+            this.editCardToolStripMenuItem.Text = "&Edit Card";
+            this.editCardToolStripMenuItem.Click += new System.EventHandler(this.editCardToolStripMenuItem_Click);
+            // 
+            // dataManagerToolStripMenuItem
+            // 
+            this.dataManagerToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("dataManagerToolStripMenuItem.Image")));
+            this.dataManagerToolStripMenuItem.Name = "dataManagerToolStripMenuItem";
+            this.dataManagerToolStripMenuItem.Size = new System.Drawing.Size(125, 23);
+            this.dataManagerToolStripMenuItem.Text = "&Data Manager";
             // 
             // reportToolStripMenuItem
             // 
@@ -215,28 +247,20 @@ namespace projectGUIApp
             // 
             this.operationManualToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("operationManualToolStripMenuItem.Image")));
             this.operationManualToolStripMenuItem.Name = "operationManualToolStripMenuItem";
-            this.operationManualToolStripMenuItem.Size = new System.Drawing.Size(190, 24);
-            this.operationManualToolStripMenuItem.Text = "Operation &Manual";
+            this.operationManualToolStripMenuItem.Size = new System.Drawing.Size(193, 24);
+            this.operationManualToolStripMenuItem.Text = "&Project Description";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("aboutToolStripMenuItem.Image")));
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(190, 24);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(193, 24);
             this.aboutToolStripMenuItem.Text = "&About...";
             // 
-            // rtxtbComStatus
+            // contextMenuStrip1
             // 
-            this.rtxtbComStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.rtxtbComStatus.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.rtxtbComStatus.Cursor = System.Windows.Forms.Cursors.IBeam;
-            this.rtxtbComStatus.Font = new System.Drawing.Font("Segoe UI", 11.25F);
-            this.rtxtbComStatus.Location = new System.Drawing.Point(11, 26);
-            this.rtxtbComStatus.Name = "rtxtbComStatus";
-            this.rtxtbComStatus.Size = new System.Drawing.Size(760, 144);
-            this.rtxtbComStatus.TabIndex = 6;
-            this.rtxtbComStatus.Text = "";
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             // 
             // Form1
             // 
@@ -269,15 +293,18 @@ namespace projectGUIApp
         private System.Windows.Forms.GroupBox comStatusGrpBx;
         private System.Windows.Forms.MenuStrip mnstrHomeScr;
         private System.Windows.Forms.ToolStripMenuItem communicationToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aGVsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem addRemoveAGVToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem agvMonitoringToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem warehouseDataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cardManagerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem newCardToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteCardToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem dataManagerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem reportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem operationManualToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox rtxtbComStatus;
+        private System.Windows.Forms.ToolStripMenuItem editCardToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     }
 }
 
