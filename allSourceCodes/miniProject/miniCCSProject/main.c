@@ -74,7 +74,7 @@ int main(void) {
 
 
         hd44780_print(lcd, "hello world\n");
-        lcd->dirty = true;
+//        lcd->dirty = true;
         hd44780_init(lcd, hd44780_geometries[0]);
         SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
 

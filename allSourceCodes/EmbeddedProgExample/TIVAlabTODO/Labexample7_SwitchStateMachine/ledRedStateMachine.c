@@ -30,5 +30,5 @@ static ledRState_t State = S_LEDOFF;
 void ledRedStateMachineUpdate(void)
 {
     //TODO
-    }
+//    }
 }

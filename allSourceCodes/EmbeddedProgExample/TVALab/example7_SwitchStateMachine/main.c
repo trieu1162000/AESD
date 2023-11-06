@@ -127,6 +127,7 @@ main(void)
     DBG("\nDebug is ON\n\n");
     while(1)
     {
+//        DBG("\nDebug is ON\n\n");
         ledRedStateMachineUpdate();
     }
 }
