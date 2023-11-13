@@ -17,7 +17,7 @@ void initLeds(){
 
 void dumpHex(unsigned char* buffer, int len);
 
-static void hd44780_init(struct hd44780 *lcd, struct hd44780_geometry *geometry)
+static void hd44780_init(struct lcd_i2c *lcd, struct lcd_i2c_geometry *geometry)
 {
     lcd->geometry = geometry;
     lcd->pos.row = 0;
@@ -44,16 +44,16 @@ int main(void) {
     // Testing LCD portion
     configureI2C();
 
-    struct hd44780 *lcd = NULL;
+    struct lcd_i2c *lcd = NULL;
     lcd = malloc(sizeof(*lcd));
-    hd44780_init(lcd, hd44780_geometries[0]);
+    hd44780_init(lcd, lcd_i2c_geometries[0]);
     SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
 
-    hd44780_init_lcd(lcd);
+    lcdInit(lcd);
     SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
 
-    hd44780_set_cursor_blink(lcd, false);
-    hd44780_set_cursor_display(lcd, false);
+    lcdSetCursorBlink(lcd, false);
+    lcdSetCursorDisplay(lcd, false);
 
 
 //    lcdInit();
@@ -73,9 +73,9 @@ int main(void) {
 
 
 
-        hd44780_print(lcd, "hello world\n");
+        lcdPrint(lcd, "hello world\n");
 //        lcd->dirty = true;
-        hd44780_init(lcd, hd44780_geometries[0]);
+        hd44780_init(lcd, lcd_i2c_geometries[0]);
         SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
 
 //        if(status == MI_OK){
