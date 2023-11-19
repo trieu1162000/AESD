@@ -16,15 +16,24 @@
 #include "inc/hw_i2c.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
+#include "inc/hw_ints.h"
 #include "driverlib/gpio.h"
 #include "driverlib/pin_map.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/ssi.h"
 #include "driverlib/uart.h"
 #include "driverlib/i2c.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/timer.h"
+#include "utils/uartstdio.h"
+#include "debug.h"
 
+extern void configureTimer(void);
 extern void configureSPI(void);
 extern void configureUART(void);
 extern void configureI2C(void);
+extern void initConsole(void);
+extern void initPeriphs(void);
+extern void initSPIIRQ(void (*pIRQHandler)(void));
 
 #endif /* MY_LIBS_INC_CONFIG_PERIPHERALS_API_H_ */

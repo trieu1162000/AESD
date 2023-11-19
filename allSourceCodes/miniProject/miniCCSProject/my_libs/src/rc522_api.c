@@ -47,7 +47,7 @@ static uint8_t spiTransfer(uint8_t data){
  * Input parameter: ucAddress--register address；ucValue--the value that need to write in
  * Return: NULL
  */
-static void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue) {
+void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue) {
     unsigned char ucAddr;
 
     lowCSPin();
@@ -137,7 +137,6 @@ int8_t rc522Request(uint8_t reqMode, uint8_t* tagType) {
     if ((status != MI_OK) || (backBits != 0x10)) 
     {
         status = MI_ERR;
-//        UARTStringPut(UART0_BASE, "rc522Request: Fail to call rc522ToCard Func\r\n");
     }
 
     return status;
@@ -177,7 +176,7 @@ static int8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, u
             break;
     }
 
-    rc522WriteRaw(RC522_REG_COMM_IE_N, irqEn | 0x80);
+//    rc522WriteRaw(RC522_REG_COMM_IE_N, irqEn | 0x80);
     rc522ClearBitMask(RC522_REG_COMM_IRQ, 0x80);
     rc522SetBitMask(RC522_REG_FIFO_LEVEL, 0x80);
     rc522WriteRaw(RC522_REG_COMMAND, PCD_IDLE);

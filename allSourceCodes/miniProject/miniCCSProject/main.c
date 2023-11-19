@@ -2,13 +2,17 @@
 #include "my_libs/inc/rc522_api.h"
 #include "my_libs/inc/uart_api.h"
 #include "my_libs/inc/lcd_i2c_api.h"
-#include "utils/uartstdio.h"
+#include "my_libs/inc/timer_handler_api.h"
+#include "my_libs/inc/bSystem_FSM_api.h"
 
-//#define CARD_LENGTH 10
-//#define MAX_LEN 16
-//
-//unsigned char str[MAX_LEN];
-//unsigned char cardID[CARD_LENGTH];
+#define CARD_LENGTH 10
+#define MAX_LEN 16
+
+unsigned char str[MAX_LEN];
+unsigned char cardID[CARD_LENGTH];
+
+volatile uint8_t rc522IRQFlag = 0;
+
 
 void initLeds(){
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
@@ -33,27 +37,70 @@ static void hd44780_init(struct lcd_i2c *lcd, struct lcd_i2c_geometry *geometry)
 
 int main(void) {
 
-//    int8_t status;
+    int8_t status;
     SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
-    configureUART();
-//    configureSPI();
-//    initLeds();
-//    UARTStringPut(UART0_BASE, "SSI Enabled! SPI Mode!  \r\nData: 8bits.\n\r");
-//    rc522Init();
+//    configureUART();
+    initPeriphs();
+    configureSPI();
+    initLeds();
+#ifdef  DEBUG
+    initConsole();
+#endif
+    DBG("SSI Enabled! SPI Mode!  \r\nData: 8bits.\n\r");
+    rc522Init();
+    initTimer();
+
+
+    //===========================================================================
+    // Testing RFID portion
+    //===========================================================================
+    //
+////    rc522WriteRaw(RC522_REG_COMM_IRQ, 0x7F);
+//    rc522WriteRaw(RC522_REG_COMM_IE_N, 0xA0);
+////    rc522WriteRaw(RC522_REG_DIV1_EN, 0x14);
+
+    while(1)
+    {
+
+
+        bSystemStateMachineUpdate();
+        bSystemEventUpdate();
+//        status = rc522Request(PICC_REQIDL, str);
+//        if(status == MI_OK){
+//            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, HIGH_PIN);
+//            DBG("Cartao Detectado! \r\n"); //Card Detected
+//        }
+//
+//       status = rc522Anticoll(&str[2]);
+//        memcpy(cardID, &str[2], 5);
+//
+//        if(status == MI_OK){
+//            DBG("ID: \n\r");
+//            dumpHex((unsigned char *)cardID, CARD_LENGTH);
+//            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, LOW_PIN);
+//            SysCtlDelay(SysCtlClockGet()/3); //Delay
+//        }
+
+    }
+
+
+
+
+    //===========================================================================
 
     // Testing LCD portion
-    configureI2C();
+//    configureI2C();
 
-    struct lcd_i2c *lcd = NULL;
-    lcd = malloc(sizeof(*lcd));
-    hd44780_init(lcd, lcd_i2c_geometries[0]);
-    SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
-
-    lcdInit(lcd);
-    SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
-
-    lcdSetCursorBlink(lcd, false);
-    lcdSetCursorDisplay(lcd, false);
+//    struct lcd_i2c *lcd = NULL;
+//    lcd = malloc(sizeof(*lcd));
+//    hd44780_init(lcd, lcd_i2c_geometries[0]);
+//    SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
+//
+//    lcdInit(lcd);
+//    SysCtlDelay( (SysCtlClockGet()/3 / 500)); // Delay ms
+//
+//    lcdSetCursorBlink(lcd, false);
+//    lcdSetCursorDisplay(lcd, false);
 
 
 //    lcdInit();
@@ -61,60 +108,78 @@ int main(void) {
 //    lcdGotoXY(1, 1);
 //    lcdSendString("Hello world");
 //    SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
-    while(1){
-//        status = rc522Request(PICC_REQIDL, str);
-//        if(status == MI_OK){
-//            UARTStringPut(UART0_BASE, "Cartao Detectado! \r\n"); //Card Detected
-//            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, HIGH_PIN);
-//        }
+//    while(1){
+
+////        if(rc522IRQFlag == 1){
+////            rc522IRQFlag = 0;
+////            DBG("About to raise ISR\n");
+////
+////            SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
+//            DBG("Start raise ISR 1\n");
 //
-//        status = rc522Anticoll(str);
-//        memcpy(cardID, str, 10);
+//            status = rc522Request(PICC_REQIDL, str);
+////            if(status == MI_OK){
+////                GPIOIntDisable(GPIO_PORTE_BASE, GPIO_PIN_2);
+////
+//////                rc522IRQFlag = 1;
+////                DBG("Cartao Detectado! \r\n"); //Card Detected
+////            }
+//            DBG("Start raise ISR 2\n");
+////        if(rc522IRQFlag == 1){
+////            rc522IRQFlag = 0;
+////            status = rc522Anticoll(str);
+////            memcpy(cardID, str, 10);
+////
+////            if(status == MI_OK){
+////                DBG("ID: \n\r");
+////                dumpHex((unsigned char *)cardID, CARD_LENGTH);
+//                GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, LOW_PIN);
+//                SysCtlDelay(SysCtlClockGet()/2); //Delay
+////                DBG("Flag: %d\n\r", rc522IRQFlag);
+////            }
+////            GPIOIntEnable(GPIO_PORTE_BASE, GPIO_PIN_2);
+////
+//////            rc522WriteRaw(RC522_REG_COMM_IRQ, 0x7F);
+////
+////        }
+//
+////        lcdPrint(lcd, "hello world\n");
+//////        lcd->dirty = true;
+////        hd44780_init(lcd, lcd_i2c_geometries[0]);
+////        SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
+//
+//
+////        lcdGotoXY(2, 0);
+////        lcdSendString("Hello world");
+////        lcdGotoXY(3, 0);
+////        lcdSendString("Hello hpntrieu");
+////        lcdGotoXY(4, 0);
+////        lcdSendString("okie hpntrieu");
+////        SysCtlDelay( (SysCtlClockGet()/3*2)); // Delay ms
+//
+//
+//        // UART testing portion
+////        UARTStringPut(UART1_BASE, "Trieu Huynh toi choi! \r\n"); //Card Detected
+////        SysCtlDelay(SysCtlClockGet()/3); //Delay
 
 
 
-        lcdPrint(lcd, "hello world\n");
-//        lcd->dirty = true;
-        hd44780_init(lcd, lcd_i2c_geometries[0]);
-        SysCtlDelay( (SysCtlClockGet()/3)); // Delay ms
-
-//        if(status == MI_OK){
-//            UARTStringPut(UART0_BASE, "ID: \n\r");
-//            dumpHex((unsigned char *)cardID, CARD_LENGTH);
-//            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, LOW_PIN);
-//            SysCtlDelay(SysCtlClockGet()/2); //Delay
-//        }
-//        lcdGotoXY(2, 0);
-//        lcdSendString("Hello world");
-//        lcdGotoXY(3, 0);
-//        lcdSendString("Hello hpntrieu");
-//        lcdGotoXY(4, 0);
-//        lcdSendString("okie hpntrieu");
-//        SysCtlDelay( (SysCtlClockGet()/3*2)); // Delay ms
-
-
-        // UART testing portion
-//        UARTStringPut(UART1_BASE, "Trieu Huynh toi choi! \r\n"); //Card Detected
-//        SysCtlDelay(SysCtlClockGet()/3); //Delay
-
-
-
-    }
+//    }
 }
 
 
-void dumpHex(unsigned char* buffer, int len){
-    int i;
-    char tempBuffer[10] = {'\0'};
-
-    UARTStringPut(UART0_BASE, " ");
-    for(i=0; i < len; i++) {
-        sprintf(tempBuffer, "0x%x, ", buffer[i]);
-        UARTStringPut(UART0_BASE, tempBuffer);
-    }
-    UARTStringPut(UART0_BASE, "  FIM! \r\n"); //End
-
-}
+//void dumpHex(unsigned char* buffer, int len){
+//    int i;
+////    char tempBuffer[10] = {'\0'};
+//
+//    UARTStringPut(UART0_BASE, " ");
+//    for(i=0; i < len; i++) {
+//        UARTprintf("0x%x, ", buffer[i]);
+////        UARTprintf(tempBuffer);
+//    }
+//    UARTprintf("  FIM! \r\n"); //End
+//
+//}
 
 //
 //

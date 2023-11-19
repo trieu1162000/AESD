@@ -111,7 +111,6 @@
 static void lowCSPin(void);
 static void highCSPin(void);
 static uint8_t spiTransfer(uint8_t data);
-static void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue);
 static uint8_t rc522ReadRaw(uint8_t ucAddress);
 static void rc522SetBitMask(uint8_t reg, uint8_t mask);
 static void rc522ClearBitMask(uint8_t reg, uint8_t mask);
@@ -130,5 +129,6 @@ static void rc522Halt(void);
 
 extern void rc522Init(void);
 extern int8_t rc522Check(uint8_t* id);
+extern void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue);
 
 #endif
