@@ -9,22 +9,18 @@
 #define MY_LIBS_INC_EVENTS_API_H_
 
 typedef enum {
-    E_B_DETECTED = 0,         // detectedFlag is raised
-    E_B_AUTHORIZED,           // verifyFllag is changed
-    E_B_DENIED,               // verifyFllag is changed
-    E_B_UNLOCKED,             // unlockedTimerFlag is raised
-    E_B_FINISHED,             // warningTimer is raised/ detectedFlag is not raised/
-    E_B_ACKED,                // SW2 is pressed
-} bSystemEvents_t;
+    // Events which used for base system
+    E_DETECTED = 0,         // the card is detected, detectedFlag is raised
+    E_AUTHORIZED,           // verifyFllag is changed
+    E_DENIED,               // verifyFllag is changed
+    E_UNLOCKED,             // unlockedTimerFlag is raised
+    E_FINISHED,             // warningTimer is raised/ detectedFlag is not raised/
+    E_ISR_RECEIVE,          // ISR UART RX is raised, some data is received
+    E_SYNC,                 // after parsing, sync event is raised
+    E_CONFIG,               // after parsing, config event is raised
+    E_ACKED,                // after parsing, ACK for an action is received from GUI 
+} systemEvents_t;
 
-typedef enum {
-    E_R_ISR_RECEIVE = 0,         // detectedFlag is raised
-    E_R_SYNC,           // verifyFllag is changed
-    E_R_CONFIG,               // verifyFllag is changed
-    E_R_DETECT,             // unlockedTimerFlag is raised
-    E_R_FINISHED,             // warningTimer is raised/ detectedFlag is not raised/
-    E_R_ISR_TRANSMIT,                // SW2 is pressed
-    E_R_ACKED,                // SW2 is pressed
-} rSystemEvents_t;
+extern systemEvents_t currentEvent;
 
 #endif /* MY_LIBS_INC_EVENTS_H_ */

@@ -13,6 +13,4 @@
 extern bool warningTimerFlag;
 extern bool unlockedTimerFlag;
 
-extern void initTimer(void);
-
 #endif /* MY_LIBS_INC_TIMER_HANDLER_API_H_ */

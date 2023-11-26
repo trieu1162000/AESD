@@ -41,8 +41,6 @@ static void IntDefaultHandler(void);
 //
 //*****************************************************************************
 extern void _c_int00(void);
-extern void timerUIntHandler(void);
-extern void timerWIntHandler(void);
 
 //*****************************************************************************
 //
@@ -57,6 +55,9 @@ extern uint32_t __STACK_TOP;
 //
 //*****************************************************************************
 // To be added by user
+extern void timerUIntHandler(void);
+extern void timerWIntHandler(void);
+extern void UARTIntHandler(void);
 
 //*****************************************************************************
 //
@@ -91,7 +92,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
     IntDefaultHandler,                      // UART0 Rx and Tx
-    IntDefaultHandler,                      // UART1 Rx and Tx
+    UARTIntHandler,                         // UART1 Rx and Tx
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault

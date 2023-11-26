@@ -127,7 +127,7 @@ static void rc522AntennaOn(void);
 static void rc522AntennaOff(void);
 static void rc522Halt(void);
 
-extern void rc522Init(void);
+extern void initRC522(void);
 extern int8_t rc522Check(uint8_t* id);
 extern void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue);
 

@@ -5,19 +5,96 @@
  *      Author: trieu
  */
 
+/*
+ *  This is the connection between TIVA C and all modules used in this project
+ */
+//                    TIVA C            Connector           DESCRIPTION
+//  //****************RFID RC522*******************************************
+// CS (SDA)           PD1               J3                  SSI3Fss             
+// SCK                PD0               J3                  SSI3CLK             
+// MOSI               PD3               J3                  SSI3Tx              
+// MISO               PD2               J3                  SSI3Rx              
+// IRQ                PE1               J3                  GPIO Input - Irq
+// GND                GND               J3                  Ground
+// RST                3.3V              J3                  Reset pin (3.3V)
+// VCC                3.3V              J3                  3.3V power
+//  //****************I2C LCD *********************************************
+// GND
+// 5V
+// SDA                PA7               J1                  I2C1SDA             
+// SCL                PA6               J1                  I2C1SCL             
+//  //****************CC2530 UART******************************************
+// GND
+// RX                 PB1               J1                  U1TX                   
+// TX                 PB0               J1                  U1RX               
+// 5V
+//  //****************Buzzer***********************************************
+// GND
+// I/O                PE4                J1                 GPIO Output       
+// 5V
+
+//  //****************Relay - Lock******************************************
+// IN                 PE5                J1                 GPIO Output      
+// 5V
+// GND
+//  //****************LEDs**************************************************
+// Green              PA5                J1                 GPIO Output     
+// GND
+// Red                PB4                J1                 GPIO Output      
+// GND
+
 #include "../inc/config_peripherals_api.h"
 
 void initPeriphs(void){
-    // TBD
+    // Enable for LED Green, I2C LCD
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+
+    // Enable for LED Red, UART CC2530
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+
+    // Enable for RFID RC522
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+
+    // Enable for Relay - Lock
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+
+    // Enable for INT TIMER
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
 }
 
-void configureI2C(void){
+void initLEDs(void)
+{
+    GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_5); // PA5
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_4); // PB4
+}
+
+void initLock(void)
+{
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_5); // PE5
+}
+
+void initBuzzer(void)
+{
+    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_4); // PE4
+}
+
+void initTimer(void)
+{
+    TimerConfigure(TIMER1_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER1_BASE, TIMER_A, 5*SysCtlClockGet()-1);
+    IntEnable(INT_TIMER1A);
+    TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, 5*SysCtlClockGet()-1);
+    IntEnable(INT_TIMER0A);
+    TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    IntMasterEnable();
+}
+
+// Init the I2C used for LCD
+void initI2C(void){
     //
     // Enable the I2C0 peripheral
     //
@@ -35,17 +112,8 @@ void configureI2C(void){
 
 }
 
-void initSPIIRQ(void (*pIRQHandler)(void))
-{
-    GPIOIntTypeSet(GPIO_PORTE_BASE, GPIO_PIN_2, GPIO_FALLING_EDGE);
-    GPIOIntRegister(GPIO_PORTE_BASE, pIRQHandler);
-    IntEnable(INT_GPIOE);
-    GPIOIntEnable(GPIO_PORTE_BASE, GPIO_PIN_2);
-    IntMasterEnable();
-
-}
-
-void configureSPI(void){
+// Init SPI used for RFID
+void initSPI(void){
     uint32_t junkAuxVar;
 
     // TBD. Need to accordingly change Port and Pins.
@@ -68,8 +136,8 @@ void configureSPI(void){
 
 }
 
-
-void configureUART(void){
+// Init the UART used for CC2530
+void initUART(void){
 
     // TBD. Need to update for using two UART Peripherals
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
@@ -82,6 +150,7 @@ void configureUART(void){
         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 }
 
+// Init the UART just used for debugging, comment out the macro in debug.h if not using
 #ifdef DEBUG
 void initConsole(void)
 {
