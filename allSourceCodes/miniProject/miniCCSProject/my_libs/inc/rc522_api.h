@@ -1,11 +1,12 @@
 #ifndef __RC522_API_H__
 #define __RC522_API_H__
 
-#include "../inc/config_peripherals_api.h"
+#include "config_peripherals_api.h"
 
 #define LOW_PIN                                           0x00
 #define HIGH_PIN                                          0XFF
-    
+#define WRITE_BLOCK                                       2
+
 // Status enumeration, Used with most functions 
 #define MI_OK                                              0
 #define MI_NOTAGERR                                       (-1)
@@ -121,12 +122,12 @@ static void rc522CalculateCRC(uint8_t* pIndata, uint8_t len, uint8_t* pOutData);
 static int8_t rc522SelectTag(uint8_t* serNum);
 static int8_t rc522Auth(uint8_t authMode, uint8_t BlockAddr, uint8_t* Sectorkey, uint8_t* serNum);
 static int8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData);
-static int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData);
 static void rc522Reset(void);
 static void rc522AntennaOn(void);
 static void rc522AntennaOff(void);
 static void rc522Halt(void);
 
+extern int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData);
 extern void initRC522(void);
 extern int8_t rc522Check(uint8_t* id);
 extern void rc522WriteRaw(uint8_t ucAddress, uint8_t ucValue);

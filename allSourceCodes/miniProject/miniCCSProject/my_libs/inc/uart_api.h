@@ -5,7 +5,7 @@
  *      Author: Trieu Huynh Pham Nhat
  */
 
-#include "../inc/config_peripherals_api.h"
+#include "config_peripherals_api.h"
 
 #define FRAME_LENGTH 5
 

@@ -7,6 +7,8 @@
 
 #include "../inc/queue_cards_api.h"
 
+cardQueue cardQueueForEEPROM;
+
 void initCard(card *card)
 {
     memset(&card->name, '\0', sizeof(card->name));
@@ -78,17 +80,25 @@ void printAllCards(const cardQueue *queue) {
     }
 }
 
-void deserializeCardQueue(const uint32_t* rawData, cardQueue *queue) {
+// Function to get a card from the queue based on UUID
+card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
     int i, j;
-    // Swap bytes for each field
-    for (i = 0; i < sizeof(cardQueue) / sizeof(uint32_t); i++) {
-        uint32_t temp = rawData[i];
-        uint8_t* bytes = (uint8_t*)&temp;
-        for (j = 0; j < sizeof(uint32_t) / 2; j++) {
-            uint8_t tmp = bytes[j];
-            bytes[j] = bytes[sizeof(uint32_t) - j - 1];
-            bytes[sizeof(uint32_t) - j - 1] = tmp;
+
+    for (i = 0; i < queue->numCards; i++) {
+        int match = 1; // Assume a match by default
+
+        for (j = 0; j < sizeof(queue->authorizedCards[i].uuid) / sizeof(uint32_t); j++) {
+            // Compare each 32-bit element of UUID
+            if (queue->authorizedCards[i].uuid[j] != targetUUID[j]) {
+                match = 0; // UUID does not match
+                break;
+            }
         }
-        memcpy(((uint8_t*)queue) + i * sizeof(uint32_t), &temp, sizeof(uint32_t));
+
+        // If match is still 1, it means UUID matches for this card
+        if (match) {
+            return queue->authorizedCards[i];
+        }
     }
+
 }

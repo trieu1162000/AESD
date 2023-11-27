@@ -15,6 +15,8 @@
 #include "rc522_api.h"
 #include "uart_api.h"
 #include "events.h"
+#include "queue_cards_api.h"
+#include "eeprom_api.h"
 
 #define CARD_LENGTH 5
 #define MAX_LEN 16
@@ -29,22 +31,27 @@ extern unsigned char cardID[CARD_LENGTH];
 
 // This var is used for both
 extern int8_t detectedFlag;
+extern char authorizedCardUUIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH];
+extern card verifiedCard;
 
+// These functions only be used in actions_api
 static void dumpHex(unsigned char* buffer, int len);
-static void upLoading(void);
+static void verifiedSending(void);
 static void normalDisplay(void);
 static void warningDisplay(void);
 static void passDisplay(void);
 static char parseFrame(const char* frame);
+static void sync1Card(card* syncCard);
 
-// Actions for base system
+// Actions for base system. These will be used
 extern int8_t bVerifyAction(void);
-extern int8_t bPollingAction(void); // This action will be used by both remote and base system FSMs
+extern int8_t bPollingAction(void);
 extern void bPassAction(void);
 extern void bFailAction(void);
 extern void bStopAction(void);
 extern void bReceiveAction(void);
 extern void bSyncAction(void);
 extern void bWriteAction(void);
+extern void bSaveAction(void);
 
 #endif /* MY_LIBS_INC_ACTIONS_API_H_ */

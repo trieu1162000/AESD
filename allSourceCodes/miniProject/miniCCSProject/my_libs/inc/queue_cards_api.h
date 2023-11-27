@@ -28,11 +28,13 @@ typedef struct {
     uint8_t numCards;
 } cardQueue;
 
+extern cardQueue cardQueueForEEPROM;
+
 extern void initCardQueue(cardQueue *queue);
 extern bool enqueueCard(cardQueue *queue, const char *name, uint32_t id, const uint32_t *uuid);
 extern bool dequeueCard(cardQueue *queue, card *dequeuedCard);
 extern void printAllCards(const cardQueue *queue);
-extern void deserializeCardQueue(const uint32_t* rawData, cardQueue *queue);
 extern void initCard(card *card);
+extern card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID);
 
 #endif /* MY_LIBS_INC_QUEUE_CARDS_API_H_ */

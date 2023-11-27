@@ -8,7 +8,7 @@
 #ifndef MY_LIBS_INC_LEDS_BUZZER_LOCK_H_
 #define MY_LIBS_INC_LEDS_BUZZER_LOCK_H_
 
-#include "../inc/config_peripherals_api.h"
+#include "config_peripherals_api.h"
 
 enum ledNumber {
                 LEDGREEN = 0,

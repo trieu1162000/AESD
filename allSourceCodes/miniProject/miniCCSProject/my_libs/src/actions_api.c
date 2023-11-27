@@ -10,27 +10,12 @@
 int8_t detectedFlag = MI_NOTAGERR;
 unsigned char str[MAX_LEN];
 unsigned char cardID[CARD_LENGTH];
-// TODO: Need to implement for EEPROM
-const char authorizedCardIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH] = {
-                        //    {0x25, 0xbd, 0x9d, 0x2d, 0x28},
-                           {0x25, 0xbd, 0x9d, 0x2d, 0x28},
-                           {0x88, 0x1d, 0x6a, 0x32, 0xcd},
-                           {0x88, 0x1d, 0x6d, 0x32, 0xca},
-                           {0x88, 0x1d, 0x6b, 0x32, 0xcc},
-                           {0x25, 0x30, 0x9d, 0x2d, 0x28},
-                           {0x25, 0x3d, 0x9d, 0x2d, 0x28}
-};
 
-void dumpHex(unsigned char* buffer, int len){
+char authorizedCardUUIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH] = getAuthorizedCardsUUID();
+card verifiedCard;
+card addedCard;
 
-    int i;
-    UARTprintf(" ");
-    for(i=0; i < len; i++) {
-        UARTprintf("0x%x, ", buffer[i]);
-    }
-    UARTprintf("  FIM! \r\n"); //End
-
-}
+static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 int8_t bVerifyAction(void)
 {
@@ -40,7 +25,8 @@ int8_t bVerifyAction(void)
     DBG("Verify ID: \n\r");
     dumpHex((unsigned char *)cardID, CARD_LENGTH);
     for (i = 0; i < AUTHORIZED_CARD_COUNT; ++i) {
-        if (memcmp(cardID, authorizedCardIDs[i], CARD_LENGTH) == 0) {
+        if (memcmp(cardID, authorizedCardUUIDs[i], CARD_LENGTH) == 0) {
+            verifiedCard = getCardFromUUID((uint32_t *) cardID);
             return VERIFY_PASS;  // Card is authorized
         }
     }
@@ -81,7 +67,7 @@ void bPassAction(void)
     TimerEnable(TIMER0_BASE, TIMER_A);
 
     // Then, we may put some data, means that raise an TX ISR
-    upLoading();
+    verifiedSending(&verifiedCard);
 
     // We may also turn on LED Green, Buzzer but shorter seconds
     ledControl(LEDGREEN, ON);
@@ -157,27 +143,78 @@ void bReceiveAction(void)
 
 }
 
-void bSyncAction(void)
+void bSyncAction(const cardQueue *queue)
 {
-    // TODO: TBD
     // Sync the database from Tiva C to the GUI
+    int i;
+    if (queue->numCards == 0) {
+        DBG("No cards in the queue.\n");
+        return;
+    }
+
+    for (i = 0; i < queue->numCards; i++) {
+        sync1Card(&queue->authorizedCards[i]);
+    }
 
 }
 
+// This action is used for adding new card
 void bWriteAction(void)
 {
     // TODO: TBD
     // Write for existing card
-
+    writename(addedCard.name);
+    writeID(addedCard.id);
     // Sync to the database in Tiva C
 
 }
 
-void upLoading()
+void bSaveAction(void)
 {
-    // TODO: TBD
+    saveCardsToEEPROM(&cardQueueForEEPROM);
+}
+
+// Static functions
+void dumpHex(unsigned char* buffer, int len){
+
+    int i;
+    UARTprintf(" ");
+    for(i=0; i < len; i++) {
+        UARTprintf("0x%x, ", buffer[i]);
+    }
+    UARTprintf("  FIM! \r\n"); //End
+
+}
+// Function to sending the data of the verified card
+void verifiedSending(const card* myCard)
+{
+    int i;
     // After passinng, the data in the card will be sent to the GUI
-    
+    // Frame: 0xFFAA - 'V' - data (Name, ID) - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'V' for indicating the data is from the "card" structure
+    UARTCharPut(UART1_BASE, 'V');
+
+    // Send ID
+    uint8_t* idBytes = (uint8_t*)&myCard->id;
+    for (i = 0; i < sizeof(myCard->id); i++) {
+        UARTCharPut(UART1_BASE, idBytes[i]);
+    }
+
+    // Send Name
+    for (i = 0; i < sizeof(myCard->name); i++) {
+        UARTCharPut(UART1_BASE, myCard->name[i]);
+    }
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+
+    // Clear the card
+    initCard(&verifiedCard);
 }
 
 void normalDisplay()
@@ -216,4 +253,75 @@ char parseFrame(const char* frame) {
         // Return an invalid value (you may want to handle this differently based on your application)
         return '\0';  // '\0' is often used to represent an invalid or null character
     }
+}
+
+void sync1Card(card* syncCard)
+{
+    int i = 0;
+    // After passinng, the data in the card will be sent to the GUI
+    // Frame: 0xFFAA - 'S' - data (Name, ID, UUID) - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'V' for indicating the data is from the "card" structure
+    UARTCharPut(UART1_BASE, 'S');
+
+    // Send ID
+    uint8_t* idBytes = (uint8_t*)&syncCard->id;
+    for (i = 0; i < sizeof(syncCard->id); i++) {
+        UARTCharPut(UART1_BASE, idBytes[i]);
+    }
+
+    // Send Name
+    for (i = 0; i < sizeof(syncCard->name); i++) {
+        UARTCharPut(UART1_BASE, syncCard->name[i]);
+    }
+
+    // Send UUID
+        // Send Name
+    for (i = 0; i < sizeof(syncCard->uuid) / sizeof(uint32_t); i++) {
+        UARTCharPut(UART1_BASE, (uint8_t) syncCard->uuid[i]);
+    }
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+
+}
+
+int8_t writeID(uint8_t id)
+{
+    int8_t status;
+
+    status = rc522Auth(PICC_AUTHENT1A, WRITE_ID_BLOCK, passWd, (uint8_t *) &addedCard.uuid);
+    if(status!=MI_OK)
+    {
+        DBG("write authrioze err.\n");
+        return status;
+    }
+    status = rc522WriteBlock(WRITE_ID_BLOCK, &id);
+    if(status!=MI_OK)
+        DBG("write data err.\n");
+    else
+        DBG("write data sucess.\n");
+    return status;
+}
+
+int8_t writeName(uint8_t* name)
+{
+    int8_t status;
+
+    status = rc522Auth(PICC_AUTHENT1A, WRITE_NAME_BLOCK, passWd, (uint8_t *) &addedCard.uuid);
+    if(status!=MI_OK)
+    {
+        DBG("write authrioze err.\n");
+        return status;
+    }
+    status = rc522WriteBlock(WRITE_NAME_BLOCK, &name[0]);
+    if(status!=MI_OK)
+        DBG("write data err.\n");
+    else
+        DBG("write data sucess.\n");
+    return status;
 }
