@@ -18,30 +18,32 @@
 #include "queue_cards_api.h"
 #include "eeprom_api.h"
 
-#define CARD_LENGTH 5
-#define MAX_LEN 16
-#define AUTHORIZED_CARD_COUNT 6
+#define WRITE_NAME_BLOCK      1
+#define WRITE_ID_BLOCK        2
+#define MAX_LEN               16
 
-#define VERIFY_PASS     1
-#define VERIFY_FAIL     -1
-#define YET_VERIFY      0
+#define VERIFY_PASS           1
+#define VERIFY_FAIL           (-1)
+#define YET_VERIFY            0
 
 extern unsigned char str[MAX_LEN];
 extern unsigned char cardID[CARD_LENGTH];
 
 // This var is used for both
 extern int8_t detectedFlag;
-extern char authorizedCardUUIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH];
+extern uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH];
 extern card verifiedCard;
 
 // These functions only be used in actions_api
 static void dumpHex(unsigned char* buffer, int len);
-static void verifiedSending(void);
+static void verifiedSending(const card* myCard);
 static void normalDisplay(void);
 static void warningDisplay(void);
 static void passDisplay(void);
 static char parseFrame(const char* frame);
 static void sync1Card(card* syncCard);
+static int8_t writeID(uint8_t id);
+static int8_t writeName(uint8_t* name);
 
 // Actions for base system. These will be used
 extern int8_t bVerifyAction(void);
@@ -50,7 +52,7 @@ extern void bPassAction(void);
 extern void bFailAction(void);
 extern void bStopAction(void);
 extern void bReceiveAction(void);
-extern void bSyncAction(void);
+extern void bSyncAction(cardQueue *queue);
 extern void bWriteAction(void);
 extern void bSaveAction(void);
 

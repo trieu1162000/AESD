@@ -6,15 +6,15 @@
 #include "my_libs/inc/system_FSM_api.h"
 #include "my_libs/inc/eeprom_api.h"
 
-const uint32_t authorizedTestCardIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH] = {
-                        //    {0x25, 0xbd, 0x9d, 0x2d, 0x28},
-                           {0x25, 0xbd, 0x9d, 0x2d, 0x28},
-                           {0x88, 0x1d, 0x6a, 0x32, 0xcd},
-                           {0x88, 0x1d, 0x6d, 0x32, 0xca},
-                           {0x88, 0x1d, 0x6b, 0x32, 0xcc},
-                           {0x25, 0x30, 0x9d, 0x2d, 0x28},
-                           {0x25, 0x3d, 0x9d, 0x2d, 0x28}
-};
+//const uint32_t authorizedTestCardIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH] = {
+//                        //    {0x25, 0xbd, 0x9d, 0x2d, 0x28},
+//                           {0x25, 0xbd, 0x9d, 0x2d, 0x28},
+//                           {0x88, 0x1d, 0x6a, 0x32, 0xcd},
+//                           {0x88, 0x1d, 0x6d, 0x32, 0xca},
+//                           {0x88, 0x1d, 0x6b, 0x32, 0xcc},
+//                           {0x25, 0x30, 0x9d, 0x2d, 0x28},
+//                           {0x25, 0x3d, 0x9d, 0x2d, 0x28}
+//};
 
 // uint32_t pui32Data[2];
 uint32_t pui32Read[sizeof(card)*2];
@@ -87,31 +87,13 @@ int main(void) {
 
     loadCardsFromEEPROM(&myCardQueueRead);
 
-    int i, j;
-    // EEPROMRead(pui32Read, 0x400, sizeof(card));
-    // for(i = 0; i < 14; i++)
-    //     DBG("Data: %x\n", pui32Read[i]);
-    // DBG("\n");
-
     printAllCards(&myCardQueueRead);
 
-
-
-
-
-
-
-    // EEPROMRead(pui32Read, 0x400, sizeof(card)*2);
-
-    // // Convert to 2D array
-    // uint32_t pui32Read2D[2][sizeof(card)];
-    // int index = 0;
-    // for (i = 0; i < 2; i++) {
-    //     for (j = 0; j < 14; j++) {
-    //         pui32Read2D[i][j] = pui32Read[index++];
-    //     }
-    // }
-
+    uint32_t authorizedCardTestUUIDs[MAX_CARDS][CARD_LENGTH]  = {0};
+    card verifiedTestCard;
+    initCard(&verifiedTestCard);
+    getAuthorizedCardsUUID(&myCardQueueRead, authorizedCardTestUUIDs);
+    verifiedTestCard = getCardFromUUID(&myCardQueueRead, authorizedCardTestUUIDs[0]);
 
 
     //======================================================================================

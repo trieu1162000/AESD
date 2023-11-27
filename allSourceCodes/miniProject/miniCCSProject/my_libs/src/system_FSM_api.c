@@ -96,7 +96,7 @@ void systemStateMachineUpdate(void)
             case S_PARSING:
                 switch (currentEvent) {
                     case E_SYNC:
-                        bSyncAction();
+                        bSyncAction(&cardQueueForEEPROM);
                         currentState = S_SYNCHRONIZING;
                         DBG("State = UNLOCKING\n");
 

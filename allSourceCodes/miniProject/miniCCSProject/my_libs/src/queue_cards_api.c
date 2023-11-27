@@ -102,3 +102,14 @@ card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
     }
 
 }
+
+// Function to get the UUIDs of authorized cards
+ void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]) {
+     int i, j;
+
+     for (i = 0; i < queue->numCards; i++) {
+         for (j = 0; j < 5; j++) {
+             uuidArray[i][j] = queue->authorizedCards[i].uuid[j];
+         }
+     }
+ }

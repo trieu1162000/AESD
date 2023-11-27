@@ -327,7 +327,7 @@ static int8_t rc522SelectTag(uint8_t* serNum) {
                     serNum--Card serial number ，4 bytes
  * Return: return MI_OK if successed
  */
-static int8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
+int8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
     int8_t status;
     uint16_t recvBits;
     uint8_t i;
@@ -376,7 +376,7 @@ static int8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData) {
  * Input parameters:blockAddr--block address;writeData--Write 16 bytes data into block
  * Return: return MI_OK if successed
  */
-static int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
+int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
     int8_t status;
     uint16_t recvBits;
     uint8_t i;

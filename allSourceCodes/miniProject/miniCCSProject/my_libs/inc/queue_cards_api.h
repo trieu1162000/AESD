@@ -13,7 +13,8 @@
 #include <stdbool.h>
 #include "debug.h"
 
-#define MAX_CARDS 10
+#define CARD_LENGTH 5
+#define MAX_CARDS   10
 
 typedef struct {
     char name[32];
@@ -36,5 +37,6 @@ extern bool dequeueCard(cardQueue *queue, card *dequeuedCard);
 extern void printAllCards(const cardQueue *queue);
 extern void initCard(card *card);
 extern card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID);
+extern void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]);
 
 #endif /* MY_LIBS_INC_QUEUE_CARDS_API_H_ */

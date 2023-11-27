@@ -120,13 +120,13 @@ static int8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, u
 extern int8_t rc522Anticoll(uint8_t* serNum);
 static void rc522CalculateCRC(uint8_t* pIndata, uint8_t len, uint8_t* pOutData);
 static int8_t rc522SelectTag(uint8_t* serNum);
-static int8_t rc522Auth(uint8_t authMode, uint8_t BlockAddr, uint8_t* Sectorkey, uint8_t* serNum);
 static int8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData);
 static void rc522Reset(void);
 static void rc522AntennaOn(void);
 static void rc522AntennaOff(void);
 static void rc522Halt(void);
 
+extern int8_t rc522Auth(uint8_t authMode, uint8_t BlockAddr, uint8_t* Sectorkey, uint8_t* serNum);
 extern int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData);
 extern void initRC522(void);
 extern int8_t rc522Check(uint8_t* id);

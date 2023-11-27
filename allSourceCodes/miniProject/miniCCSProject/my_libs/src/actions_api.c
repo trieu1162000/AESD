@@ -11,7 +11,7 @@ int8_t detectedFlag = MI_NOTAGERR;
 unsigned char str[MAX_LEN];
 unsigned char cardID[CARD_LENGTH];
 
-char authorizedCardUUIDs[AUTHORIZED_CARD_COUNT][CARD_LENGTH] = getAuthorizedCardsUUID();
+uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
 card addedCard;
 
@@ -21,12 +21,12 @@ int8_t bVerifyAction(void)
 {
     // Read the UID of card
     int i;
-
+    getAuthorizedCardsUUID(&cardQueueForEEPROM, authorizedCardUUIDs);
     DBG("Verify ID: \n\r");
     dumpHex((unsigned char *)cardID, CARD_LENGTH);
-    for (i = 0; i < AUTHORIZED_CARD_COUNT; ++i) {
+    for (i = 0; i < MAX_CARDS; ++i) {
         if (memcmp(cardID, authorizedCardUUIDs[i], CARD_LENGTH) == 0) {
-            verifiedCard = getCardFromUUID((uint32_t *) cardID);
+            verifiedCard = getCardFromUUID(&cardQueueForEEPROM, (uint32_t *) cardID);
             return VERIFY_PASS;  // Card is authorized
         }
     }
@@ -143,7 +143,7 @@ void bReceiveAction(void)
 
 }
 
-void bSyncAction(const cardQueue *queue)
+void bSyncAction(cardQueue *queue)
 {
     // Sync the database from Tiva C to the GUI
     int i;
@@ -163,7 +163,7 @@ void bWriteAction(void)
 {
     // TODO: TBD
     // Write for existing card
-    writename(addedCard.name);
+    writeName((uint8_t *) addedCard.name);
     writeID(addedCard.id);
     // Sync to the database in Tiva C
 
