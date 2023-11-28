@@ -54,6 +54,7 @@ extern void bStopAction(void);
 extern void bReceiveAction(void);
 extern void bSyncAction(cardQueue *queue);
 extern void bWriteAction(void);
-extern void bSaveAction(void);
+extern void bUpdateAction(void);
+extern void bRemoveAction(void);
 
 #endif /* MY_LIBS_INC_ACTIONS_API_H_ */

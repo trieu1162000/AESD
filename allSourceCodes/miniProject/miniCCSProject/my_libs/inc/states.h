@@ -15,7 +15,9 @@ typedef enum {
     S_UNLOCKING,
     S_PARSING,
     S_SYNCHRONIZING,
-    S_CONFIGURATING,
+    S_ADDING,
+    S_REMOVING,
+    S_UPDATING,
     S_WRITING,
 } systemState_t;
 

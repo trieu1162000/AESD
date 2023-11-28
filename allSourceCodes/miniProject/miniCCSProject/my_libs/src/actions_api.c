@@ -126,16 +126,33 @@ void bReceiveAction(void)
         DBG("Parsed data: %c\n", parsedData);
         switch(parsedData)
         {
-            case 'A':
+            // TODO: Need to implement data following the receive codes
+            // verifiedSending() is ok
+            case 'T':
                 currentEvent =  E_ACKED;
                 break;
-            case 'C':
-                currentEvent =  E_CONFIG;
+            // Add card event is detected
+            case 'A':
+                currentEvent = E_ADD;
                 break;
+            // Remove card event is detected
+            case 'R':
+                currentEvent = E_REMOVE;
+                break;
+            // Update card event is detected
+            case 'U':
+                currentEvent =  E_UPDATE;
+                break;
+            // Sync card event is detected
             case 'S':
                 currentEvent =  E_SYNC;
+                break;
+            // GUI finished event is detected
             case 'F':
                 currentEvent =  E_FINISHED;
+                break;
+            default:
+                break;
         }
     }
     else
@@ -169,9 +186,14 @@ void bWriteAction(void)
 
 }
 
-void bSaveAction(void)
+void bRemoveAction(void)
 {
-    saveCardsToEEPROM(&cardQueueForEEPROM);
+
+}
+
+void bUpdateAction()
+{
+
 }
 
 // Static functions

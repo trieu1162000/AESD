@@ -98,17 +98,30 @@ void systemStateMachineUpdate(void)
                     case E_SYNC:
                         bSyncAction(&cardQueueForEEPROM);
                         currentState = S_SYNCHRONIZING;
-                        DBG("State = UNLOCKING\n");
-
+                        DBG("State = SYNCHRONIZING\n");
                         break;
-                    case E_CONFIG:
+                    case E_ADD:
                         detectedFlag = bPollingAction();
-                        currentState = S_CONFIGURATING;
-                        DBG("State = CONFIGURATING\n");
+                        currentState = S_ADDING;
+                        DBG("State = ADDING\n");
+                        break;
+                    case E_REMOVE:
+                        bRemoveAction();
+                        currentState = S_REMOVING;
+                        DBG("State = REMOVING\n");
+                        break;
+                    case E_UPDATE:
+                        bUpdateAction();
+                        currentState = S_UPDATING;
+                        DBG("State = UPDATING\n");
                         break;
                     case E_ACKED:
                         currentState = S_STOPPED;
                         currentEvent = E_FINISHED;
+                        DBG("State = STOPPED\n");
+                        break;
+                    case E_FINISHED:
+                        currentState = S_STOPPED;
                         DBG("State = STOPPED\n");
                         break;
                     default:
@@ -128,12 +141,12 @@ void systemStateMachineUpdate(void)
                 }
                 break;
 
-            case S_CONFIGURATING:
+            case S_ADDING:
                 switch (currentEvent) {
                     case E_DETECTED:
                         bWriteAction();
                         currentState = S_WRITING;
-                        DBG("State = CONFIGURATING\n");
+                        DBG("State = WRITING\n");
                         break;
                     case E_ISR_RECEIVE:
                         bReceiveAction();
@@ -146,6 +159,30 @@ void systemStateMachineUpdate(void)
                 break;
 
             case S_WRITING:
+                switch (currentEvent) {
+                    case E_ISR_RECEIVE:
+                        bReceiveAction();
+                        currentState = S_PARSING;
+                        DBG("State = PARSING\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case S_REMOVING:
+                switch (currentEvent) {
+                    case E_ISR_RECEIVE:
+                        bReceiveAction();
+                        currentState = S_PARSING;
+                        DBG("State = PARSING\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case S_UPDATING:
                 switch (currentEvent) {
                     case E_ISR_RECEIVE:
                         bReceiveAction();

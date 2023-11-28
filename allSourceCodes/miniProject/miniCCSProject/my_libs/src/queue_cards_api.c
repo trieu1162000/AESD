@@ -104,12 +104,43 @@ card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
 }
 
 // Function to get the UUIDs of authorized cards
- void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]) {
-     int i, j;
+void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]) {
+    int i, j;
 
-     for (i = 0; i < queue->numCards; i++) {
-         for (j = 0; j < 5; j++) {
-             uuidArray[i][j] = queue->authorizedCards[i].uuid[j];
-         }
-     }
- }
+    for (i = 0; i < queue->numCards; i++) {
+        for (j = 0; j < 5; j++) {
+            uuidArray[i][j] = queue->authorizedCards[i].uuid[j];
+        }
+    }
+}
+
+// Function to remove a card from the queue based on ID
+bool removeCard(cardQueue *queue, uint32_t id) {
+    for (int i = 0; i < queue->numCards; i++) {
+        if (queue->authorizedCards[i].id == id) {
+            // Found the card with the specified ID, remove it and shift other elements
+            for (int j = i; j < queue->numCards - 1; j++) {
+                queue->authorizedCards[j] = queue->authorizedCards[j + 1];
+            }
+            initEmptyCard(&queue->authorizedCards[queue->numCards - 1]);
+            queue->numCards--;
+            return true;  // Card removed successfully
+        }
+    }
+    return false;  // Card with the specified ID not found
+}
+
+// Function to update the fields of a card based on UUID, ID, and name
+bool updateCardBaseOnUUID(cardQueue *queue, uint32_t id, const char *name, const uint32_t *uuid) {
+    for (int i = 0; i < queue->numCards; i++) {
+        if (queue->authorizedCards[i].id == id) {
+            // Found the card with the specified ID, update its fields
+            strncpy(queue->authorizedCards[i].name, name, sizeof(queue->authorizedCards[i].name) - 1);
+            queue->authorizedCards[i].name[sizeof(queue->authorizedCards[i].name) - 1] = '\0';  // Ensure null-terminated string
+            queue->authorizedCards[i].id = id;
+            memcpy(queue->authorizedCards[i].uuid, uuid, sizeof(queue->authorizedCards[i].uuid));
+            return true;  // Card updated successfully
+        }
+    }
+    return false;  // Card with the specified ID not found
+}

@@ -16,8 +16,10 @@ typedef enum {
     E_UNLOCKED,             // unlockedTimerFlag is raised
     E_FINISHED,             // warningTimer is raised/ detectedFlag is not raised/
     E_ISR_RECEIVE,          // ISR UART RX is raised, some data is received
-    E_SYNC,                 // after parsing, sync event is raised
-    E_CONFIG,               // after parsing, config event is raised
+    E_SYNC,                 // after parsing, sync card event is raised
+    E_ADD,                  // after parsing, add card event is raised
+    E_UPDATE,               // after parsing, update card event is raised
+    E_REMOVE,               // after parsing, remove card event is raised
     E_ACKED,                // after parsing, ACK for an action is received from GUI 
 } systemEvents_t;
 
