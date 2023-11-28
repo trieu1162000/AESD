@@ -28,12 +28,14 @@
 #include "utils/uartstdio.h"
 #include "debug.h"
 
-extern void configureTimer(void);
-extern void configureSPI(void);
-extern void configureUART(void);
-extern void configureI2C(void);
+extern void initTimer(void);
+extern void initSPI(void);
+extern void initUART(void);
+extern void initI2C(void);
 extern void initConsole(void);
 extern void initPeriphs(void);
-extern void initSPIIRQ(void (*pIRQHandler)(void));
+extern void initLEDs(void);
+extern void initLock(void);
+extern void initBuzzer(void);
 
 #endif /* MY_LIBS_INC_CONFIG_PERIPHERALS_API_H_ */

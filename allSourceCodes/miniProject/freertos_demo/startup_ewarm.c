@@ -1,28 +1,38 @@
 //*****************************************************************************
 //
-// Startup code for use with TI's Code Composer Studio.
+// startup_ewarm.c - Startup code for use with IAR's Embedded Workbench,
+//                   version 5.
 //
-// Copyright (c) 2011-2014 Texas Instruments Incorporated.  All rights reserved.
+// Copyright (c) 2012-2017 Texas Instruments Incorporated.  All rights reserved.
 // Software License Agreement
 // 
-// Software License Agreement
-//
 // Texas Instruments (TI) is supplying this software for use solely and
 // exclusively on TI's microcontroller products. The software is owned by
 // TI and/or its suppliers, and is protected under applicable copyright
 // laws. You may not combine this software with "viral" open-source
 // software in order to form a larger program.
-//
+// 
 // THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
 // NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
 // NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
 // A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
 // CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
 // DAMAGES, FOR ANY REASON WHATSOEVER.
+// 
+// This is part of revision 2.1.4.178 of the EK-TM4C123GXL Firmware Package.
 //
 //*****************************************************************************
 
 #include <stdint.h>
+#include "inc/hw_nvic.h"
+#include "inc/hw_types.h"
+
+//*****************************************************************************
+//
+// Enable the IAR extensions for this source file.
+//
+//*****************************************************************************
+#pragma language=extended
 
 //*****************************************************************************
 //
@@ -36,40 +46,50 @@ static void IntDefaultHandler(void);
 
 //*****************************************************************************
 //
-// External declaration for the reset handler that is to be called when the
-// processor is started
-//
-//*****************************************************************************
-extern void _c_int00(void);
-
-//*****************************************************************************
-//
-// Linker variable that marks the top of the stack.
-//
-//*****************************************************************************
-extern uint32_t __STACK_TOP;
-
-//*****************************************************************************
-//
 // External declarations for the interrupt handlers used by the application.
 //
 //*****************************************************************************
-// To be added by user
-extern void timerUIntHandler(void);
-extern void timerWIntHandler(void);
-extern void UARTIntHandler(void);
+extern void xPortPendSVHandler(void);
+extern void vPortSVCHandler(void);
+extern void xPortSysTickHandler(void);
+
+//*****************************************************************************
+//
+// The entry point for the application startup code.
+//
+//*****************************************************************************
+extern void __iar_program_start(void);
+
+//*****************************************************************************
+//
+// Reserve space for the system stack.
+//
+//*****************************************************************************
+static uint32_t pui32Stack[128] @ ".noinit";
+
+//*****************************************************************************
+//
+// A union that describes the entries of the vector table.  The union is needed
+// since the first entry is the stack pointer and the remainder are function
+// pointers.
+//
+//*****************************************************************************
+typedef union
+{
+    void (*pfnHandler)(void);
+    uint32_t ui32Ptr;
+}
+uVectorEntry;
 
 //*****************************************************************************
 //
 // The vector table.  Note that the proper constructs must be placed on this to
-// ensure that it ends up at physical address 0x0000.0000 or at the start of
-// the program if located at a start address other than 0.
+// ensure that it ends up at physical address 0x0000.0000.
 //
 //*****************************************************************************
-#pragma DATA_SECTION(g_pfnVectors, ".intvecs")
-void (* const g_pfnVectors[])(void) =
+__root const uVectorEntry __vector_table[] @ ".intvec" =
 {
-    (void (*)(void))((uint32_t)&__STACK_TOP),
+    { .ui32Ptr = (uint32_t)pui32Stack + sizeof(pui32Stack) },
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
@@ -81,18 +101,18 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     0,                                      // Reserved
     0,                                      // Reserved
-    IntDefaultHandler,                      // SVCall handler
+    vPortSVCHandler,                        // SVCall handler
     IntDefaultHandler,                      // Debug monitor handler
     0,                                      // Reserved
-    IntDefaultHandler,                      // The PendSV handler
-    IntDefaultHandler,                      // The SysTick handler
+    xPortPendSVHandler,                     // The PendSV handler
+    xPortSysTickHandler,                    // The SysTick handler
     IntDefaultHandler,                      // GPIO Port A
     IntDefaultHandler,                      // GPIO Port B
     IntDefaultHandler,                      // GPIO Port C
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
     IntDefaultHandler,                      // UART0 Rx and Tx
-    UARTIntHandler,                         // UART1 Rx and Tx
+    IntDefaultHandler,                      // UART1 Rx and Tx
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault
@@ -105,9 +125,9 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-    timerUIntHandler,                       // Timer 0 subtimer A
+    IntDefaultHandler,                      // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-    timerWIntHandler,                       // Timer 1 subtimer A
+    IntDefaultHandler,                      // Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
@@ -241,11 +261,23 @@ void
 ResetISR(void)
 {
     //
-    // Jump to the CCS C initialization routine.  This will enable the
-    // floating-point unit as well, so that does not need to be done here.
+    // Enable the floating-point unit.  This must be done here to handle the
+    // case where main() uses floating-point and the function prologue saves
+    // floating-point registers (which will fault if floating-point is not
+    // enabled).  Any configuration of the floating-point unit using DriverLib
+    // APIs must be done here prior to the floating-point unit being enabled.
     //
-    __asm("    .global _c_int00\n"
-          "    b.w     _c_int00");
+    // Note that this does not use DriverLib since it might not be included in
+    // this project.
+    //
+    HWREG(NVIC_CPAC) = ((HWREG(NVIC_CPAC) &
+                         ~(NVIC_CPAC_CP10_M | NVIC_CPAC_CP11_M)) |
+                        NVIC_CPAC_CP10_FULL | NVIC_CPAC_CP11_FULL);
+
+    //
+    // Call the application's entry point.
+    //
+    __iar_program_start();
 }
 
 //*****************************************************************************

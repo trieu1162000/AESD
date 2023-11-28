@@ -8,6 +8,8 @@
 #ifndef MY_LIBS_INC_DEBUG_H_
 #define MY_LIBS_INC_DEBUG_H_
 
+#include "utils/uartstdio.h"
+
 #define DEBUG
 
 #ifdef DEBUG

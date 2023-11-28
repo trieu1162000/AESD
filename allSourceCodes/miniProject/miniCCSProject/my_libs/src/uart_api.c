@@ -16,6 +16,8 @@
 
 #include "../inc/uart_api.h"
 
+uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
+
 void UARTStringPut(uint32_t ui32Base,const char *str){
 
     size_t count;
@@ -29,3 +31,35 @@ void UARTStringPut(uint32_t ui32Base,const char *str){
     }
 }
 
+// Using UART1
+void UARTIntHandler(void)
+{
+    uint32_t ui32Status;
+    int8_t i = 0;
+    //
+    // Get the interrrupt status.
+    //
+    ui32Status = UARTIntStatus(UART1_BASE, true);
+
+    //
+    // Clear the asserted interrupts.
+    //
+    UARTIntClear(UART1_BASE, ui32Status);
+
+    //
+    // Loop while there are characters in the receive FIFO.
+    //
+    // Wait until the UART receiver has data
+    while (!UARTCharsAvail(UART1_BASE))
+    {
+
+        // Read a byte
+        rawReceivedFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
+        i++;
+
+    }
+
+    // Raise an ISR Receive Flag
+    ISRReceiveFlag = true;
+
+}

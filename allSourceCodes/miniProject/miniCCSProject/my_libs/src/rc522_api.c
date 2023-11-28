@@ -17,7 +17,6 @@
 // VCC                3.3V                      3.3V power
 
 #include "../inc/rc522_api.h"
-#include "../inc/uart_api.h"
 
 static void lowCSPin(void){
     GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
@@ -225,7 +224,6 @@ static int8_t rc522ToCard(uint8_t command, uint8_t* sendData, uint8_t sendLen, u
             }
         } else {
             status = MI_ERR;
-//            UARTStringPut(UART0_BASE, "rc522ToCard: MI_ERR with rc522ReadRaw Func\r\n");
         }
     }
     return status;
@@ -329,7 +327,7 @@ static int8_t rc522SelectTag(uint8_t* serNum) {
                     serNum--Card serial number ，4 bytes
  * Return: return MI_OK if successed
  */
-static int8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
+int8_t rc522Auth(uint8_t authMode, uint8_t blockAddr, uint8_t* sectorKey, uint8_t* serNum) {
     int8_t status;
     uint16_t recvBits;
     uint8_t i;
@@ -378,7 +376,7 @@ static int8_t rc522ReadBlock(uint8_t blockAddr, uint8_t* recvData) {
  * Input parameters:blockAddr--block address;writeData--Write 16 bytes data into block
  * Return: return MI_OK if successed
  */
-static int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
+int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
     int8_t status;
     uint16_t recvBits;
     uint8_t i;
@@ -407,12 +405,12 @@ static int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
 }
 
 /*
- * Function: rc522Init
+ * Function: initRC522
  * Description: Initialize RC522
  * Input parameter: NULL
  * Return: NULL
  */
-void rc522Init(void) {
+void initRC522(void) {
     unsigned char a;
 
     GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
@@ -427,9 +425,9 @@ void rc522Init(void) {
     rc522WriteRaw(RC522_REG_MODE, 0x3D);
     a = rc522ReadRaw(RC522_REG_T_RELOAD_L);
     if(a != 30)
-        UARTStringPut(UART0_BASE, "rc522Init: No RC522 detected\r\n");
+        DBG("rc522Init: No RC522 detected\r\n");
     else
-        UARTStringPut(UART0_BASE, "rc522Init: RC522 exist\r\n");
+        DBG("rc522Init: RC522 exist\r\n");
 //    rc522AntennaOff();
     rc522AntennaOn(); // Open the antenna
 }

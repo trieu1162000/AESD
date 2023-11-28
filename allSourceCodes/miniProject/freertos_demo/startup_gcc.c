@@ -1,28 +1,30 @@
 //*****************************************************************************
 //
-// Startup code for use with TI's Code Composer Studio.
+// startup_gcc.c - Startup code for use with GNU tools.
 //
-// Copyright (c) 2011-2014 Texas Instruments Incorporated.  All rights reserved.
+// Copyright (c) 2012-2017 Texas Instruments Incorporated.  All rights reserved.
 // Software License Agreement
 // 
-// Software License Agreement
-//
 // Texas Instruments (TI) is supplying this software for use solely and
 // exclusively on TI's microcontroller products. The software is owned by
 // TI and/or its suppliers, and is protected under applicable copyright
 // laws. You may not combine this software with "viral" open-source
 // software in order to form a larger program.
-//
+// 
 // THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
 // NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
 // NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
 // A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
 // CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
 // DAMAGES, FOR ANY REASON WHATSOEVER.
+// 
+// This is part of revision 2.1.4.178 of the EK-TM4C123GXL Firmware Package.
 //
 //*****************************************************************************
 
 #include <stdint.h>
+#include "inc/hw_nvic.h"
+#include "inc/hw_types.h"
 
 //*****************************************************************************
 //
@@ -36,40 +38,37 @@ static void IntDefaultHandler(void);
 
 //*****************************************************************************
 //
-// External declaration for the reset handler that is to be called when the
-// processor is started
-//
-//*****************************************************************************
-extern void _c_int00(void);
-
-//*****************************************************************************
-//
-// Linker variable that marks the top of the stack.
-//
-//*****************************************************************************
-extern uint32_t __STACK_TOP;
-
-//*****************************************************************************
-//
 // External declarations for the interrupt handlers used by the application.
 //
 //*****************************************************************************
-// To be added by user
-extern void timerUIntHandler(void);
-extern void timerWIntHandler(void);
-extern void UARTIntHandler(void);
+extern void xPortPendSVHandler(void);
+extern void vPortSVCHandler(void);
+extern void xPortSysTickHandler(void);
+
+//*****************************************************************************
+//
+// The entry point for the application.
+//
+//*****************************************************************************
+extern int main(void);
+
+//*****************************************************************************
+//
+// Reserve space for the system stack.
+//
+//*****************************************************************************
+static uint32_t pui32Stack[128];
 
 //*****************************************************************************
 //
 // The vector table.  Note that the proper constructs must be placed on this to
-// ensure that it ends up at physical address 0x0000.0000 or at the start of
-// the program if located at a start address other than 0.
+// ensure that it ends up at physical address 0x0000.0000.
 //
 //*****************************************************************************
-#pragma DATA_SECTION(g_pfnVectors, ".intvecs")
+__attribute__ ((section(".isr_vector")))
 void (* const g_pfnVectors[])(void) =
 {
-    (void (*)(void))((uint32_t)&__STACK_TOP),
+    (void (*)(void))((uint32_t)pui32Stack + sizeof(pui32Stack)),
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
@@ -81,18 +80,18 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     0,                                      // Reserved
     0,                                      // Reserved
-    IntDefaultHandler,                      // SVCall handler
+    vPortSVCHandler,                        // SVCall handler
     IntDefaultHandler,                      // Debug monitor handler
     0,                                      // Reserved
-    IntDefaultHandler,                      // The PendSV handler
-    IntDefaultHandler,                      // The SysTick handler
+    xPortPendSVHandler,                     // The PendSV handler
+    xPortSysTickHandler,                    // The SysTick handler
     IntDefaultHandler,                      // GPIO Port A
     IntDefaultHandler,                      // GPIO Port B
     IntDefaultHandler,                      // GPIO Port C
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
     IntDefaultHandler,                      // UART0 Rx and Tx
-    UARTIntHandler,                         // UART1 Rx and Tx
+    IntDefaultHandler,                      // UART1 Rx and Tx
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault
@@ -105,9 +104,9 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-    timerUIntHandler,                       // Timer 0 subtimer A
+    IntDefaultHandler,                      // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-    timerWIntHandler,                       // Timer 1 subtimer A
+    IntDefaultHandler,                      // Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
@@ -229,6 +228,19 @@ void (* const g_pfnVectors[])(void) =
 
 //*****************************************************************************
 //
+// The following are constructs created by the linker, indicating where the
+// the "data" and "bss" segments reside in memory.  The initializers for the
+// for the "data" segment resides immediately following the "text" segment.
+//
+//*****************************************************************************
+extern uint32_t _ldata;
+extern uint32_t _data;
+extern uint32_t _edata;
+extern uint32_t _bss;
+extern uint32_t _ebss;
+
+//*****************************************************************************
+//
 // This is the code that gets called when the processor first starts execution
 // following a reset event.  Only the absolutely necessary set is performed,
 // after which the application supplied entry() routine is called.  Any fancy
@@ -240,12 +252,48 @@ void (* const g_pfnVectors[])(void) =
 void
 ResetISR(void)
 {
+    uint32_t *pui32Src, *pui32Dest;
+
     //
-    // Jump to the CCS C initialization routine.  This will enable the
-    // floating-point unit as well, so that does not need to be done here.
+    // Copy the data segment initializers from flash to SRAM.
     //
-    __asm("    .global _c_int00\n"
-          "    b.w     _c_int00");
+    pui32Src = &_ldata;
+    for(pui32Dest = &_data; pui32Dest < &_edata; )
+    {
+        *pui32Dest++ = *pui32Src++;
+    }
+
+    //
+    // Zero fill the bss segment.
+    //
+    __asm("    ldr     r0, =_bss\n"
+          "    ldr     r1, =_ebss\n"
+          "    mov     r2, #0\n"
+          "    .thumb_func\n"
+          "zero_loop:\n"
+          "        cmp     r0, r1\n"
+          "        it      lt\n"
+          "        strlt   r2, [r0], #4\n"
+          "        blt     zero_loop");
+
+    //
+    // Enable the floating-point unit.  This must be done here to handle the
+    // case where main() uses floating-point and the function prologue saves
+    // floating-point registers (which will fault if floating-point is not
+    // enabled).  Any configuration of the floating-point unit using DriverLib
+    // APIs must be done here prior to the floating-point unit being enabled.
+    //
+    // Note that this does not use DriverLib since it might not be included in
+    // this project.
+    //
+    HWREG(NVIC_CPAC) = ((HWREG(NVIC_CPAC) &
+                         ~(NVIC_CPAC_CP10_M | NVIC_CPAC_CP11_M)) |
+                        NVIC_CPAC_CP10_FULL | NVIC_CPAC_CP11_FULL);
+
+    //
+    // Call the application's entry point.
+    //
+    main();
 }
 
 //*****************************************************************************
