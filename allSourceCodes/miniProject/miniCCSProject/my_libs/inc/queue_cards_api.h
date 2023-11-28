@@ -30,6 +30,7 @@ typedef struct {
 } cardQueue;
 
 extern cardQueue cardQueueForEEPROM;
+extern card cardNeedToDo;
 
 extern void initCardQueue(cardQueue *queue);
 extern bool enqueueCard(cardQueue *queue, const char *name, uint32_t id, const uint32_t *uuid);
@@ -39,6 +40,6 @@ extern void initCard(card *card);
 extern card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID);
 extern void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]);
 extern bool removeCard(cardQueue *queue, uint32_t id);
-extern bool updateCardBaseOnUUID(cardQueue *queue, uint32_t id, const char *name, const uint32_t *uuid);
+extern bool updateCardBaseOnUUID(cardQueue *queue, const uint32_t *uuid, const char *newName, uint32_t newId);
 
 #endif /* MY_LIBS_INC_QUEUE_CARDS_API_H_ */

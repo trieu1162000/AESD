@@ -72,10 +72,11 @@ int main(void) {
     // Testing portion
     //======================================================================================
     // Initialize the card queue
-    cardQueue myCardQueue, myCardQueueRead;
-    initCardQueue(&myCardQueue);
+    cardQueue myCardQueueRead;
+    // initCardQueue(&myCardQueue);
     initCardQueue(&myCardQueueRead);
-
+    uint32_t newCardUUID[] = {0x25, 0xbd, 0x9d, 0x2d, 0x28};
+    bool result = false;
     // enqueueCard(&myCardQueue, "Huynh Pham Nhat Trieu", 2370014, authorizedTestCardIDs[0]);
     // enqueueCard(&myCardQueue, "Huynh Pham Nhat", 2370015, authorizedTestCardIDs[1]);
     // enqueueCard(&myCardQueue, "Huynh Pham Trieu", 2370016, authorizedTestCardIDs[2]);
@@ -86,14 +87,18 @@ int main(void) {
     // DBG("Save successfully\n");
 
     loadCardsFromEEPROM(&myCardQueueRead);
-
+    
     printAllCards(&myCardQueueRead);
 
-    uint32_t authorizedCardTestUUIDs[MAX_CARDS][CARD_LENGTH]  = {0};
-    card verifiedTestCard;
-    initCard(&verifiedTestCard);
-    getAuthorizedCardsUUID(&myCardQueueRead, authorizedCardTestUUIDs);
-    verifiedTestCard = getCardFromUUID(&myCardQueueRead, authorizedCardTestUUIDs[0]);
+    // uint32_t authorizedCardTestUUIDs[MAX_CARDS][CARD_LENGTH]  = {0};
+    // card verifiedTestCard;
+    // initCard(&verifiedTestCard);
+    // getAuthorizedCardsUUID(&myCardQueueRead, authorizedCardTestUUIDs);
+    // verifiedTestCard = getCardFromUUID(&myCardQueueRead, authorizedCardTestUUIDs[0]);
+    // removeCard(&myCardQueueRead, 2370014);
+    result = updateCardBaseOnUUID(&myCardQueueRead, newCardUUID, "Trieu Huynh toi choi", 2366666);
+    printAllCards(&myCardQueueRead);
+
 
 
     //======================================================================================

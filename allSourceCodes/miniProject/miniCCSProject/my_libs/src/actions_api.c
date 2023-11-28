@@ -10,10 +10,12 @@
 int8_t detectedFlag = MI_NOTAGERR;
 unsigned char str[MAX_LEN];
 unsigned char cardID[CARD_LENGTH];
+unsigned char funnctionalCode = 0; 
 
 uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
 card addedCard;
+char receivedFrame[MAX_FRAME_SIZE] = {0};
 
 static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -115,49 +117,10 @@ void bStopAction(void)
 
 void bReceiveAction(void)
 {
-    uint8_t parsedData = 0;
-
+    // Get the frame
+    parseFirstFrameInRawData((char *) rawReceivedFrame, receivedFrame);
     // Parsing the receive frame
-    parsedData = parseFrame((const char *) receiveFrame);
-
-    // Check if the parsing was successful
-    if (parsedData != '\0')
-    {
-        DBG("Parsed data: %c\n", parsedData);
-        switch(parsedData)
-        {
-            // TODO: Need to implement data following the receive codes
-            // verifiedSending() is ok
-            case 'T':
-                currentEvent =  E_ACKED;
-                break;
-            // Add card event is detected
-            case 'A':
-                currentEvent = E_ADD;
-                break;
-            // Remove card event is detected
-            case 'R':
-                currentEvent = E_REMOVE;
-                break;
-            // Update card event is detected
-            case 'U':
-                currentEvent =  E_UPDATE;
-                break;
-            // Sync card event is detected
-            case 'S':
-                currentEvent =  E_SYNC;
-                break;
-            // GUI finished event is detected
-            case 'F':
-                currentEvent =  E_FINISHED;
-                break;
-            default:
-                break;
-        }
-    }
-    else
-        DBG("Fail to parse the data. Invalid frame format\n");
-
+    parseDataInFrame(receivedFrame, &cardNeedToDo);
 }
 
 void bSyncAction(cardQueue *queue)
@@ -178,7 +141,6 @@ void bSyncAction(cardQueue *queue)
 // This action is used for adding new card
 void bWriteAction(void)
 {
-    // TODO: TBD
     // Write for existing card
     writeName((uint8_t *) addedCard.name);
     writeID(addedCard.id);
@@ -186,14 +148,51 @@ void bWriteAction(void)
 
 }
 
-void bRemoveAction(void)
+bool bRemoveAction(uint32_t id)
 {
-
+    return removeCard(&cardQueueForEEPROM, id);
 }
 
-void bUpdateAction()
+bool bUpdateAction(uint32_t id, const char *name, uint32_t *uuid)
 {
+    return updateCardBaseOnUUID(&cardQueueForEEPROM, uuid, name, id);
+}
 
+void bACKRequest(void)
+{
+    // Frame: 0xFFAA - 'O' - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'O' for OK to send back to the GUI
+    UARTCharPut(UART1_BASE, 'O');
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+}
+
+void bACKAdded(void)
+{
+    int i = 0;
+    // After passinng, the data in the card will be sent to the GUI
+    // Frame: 0xFFAA - 'A' - data (UUID) - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'A' for indicating the data is from the "card" structure
+    UARTCharPut(UART1_BASE, 'A');
+
+    // Send UUID
+    for (i = 0; i < sizeof(syncCard->uuid) / sizeof(uint32_t); i++) {
+        UARTCharPut(UART1_BASE, (uint8_t) syncCard->uuid[i]);
+    }
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
 }
 
 // Static functions
@@ -265,15 +264,93 @@ void passDisplay()
     // Line 3: Name:
 }
 
-// Function to parse the frame and retrieve the data
-char parseFrame(const char* frame) {
-    // Check if the header and end frame are present
-    if (frame[0] == 0xFF && frame[1] == 0xAA && frame[4] == 0xAA && frame[3] == 0xFF) {
-        // Extract and return the data from the frame
-        return frame[2];
+// Function to parse the first frame in raw data
+void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
+    
+    memset(frame, 0, MAX_FRAME_SIZE);
+
+    // Search for the start marker (0xFFAA) in the raw data
+    const char* startMarker = strstr(rawData, "\xFF\xAA");
+    if (startMarker != NULL) {
+        // Search for the end marker (0xAAFF) in the raw data
+        const char* endMarker = strstr(startMarker, "\xAA\xFF");
+        if (endMarker != NULL) {
+            // Calculate the length of the frame
+            size_t frameLength = endMarker - startMarker + 4; // Include the markers
+
+            // Check if the frame length is within the maximum allowed size
+            if (frameLength <= MAX_FRAME_SIZE) {
+                // Copy the frame to the frame array
+                strncpy(frame, startMarker, frameLength);
+                frame[frameLength] = '\0';  // Ensure null-terminated string
+            } else {
+                // Handle the case where the frame size exceeds the maximum allowed size
+                // You may want to handle this differently based on your application
+                frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
+            }
+        } else {
+            // Handle the case where the end marker is not found
+            // You may want to handle this differently based on your application
+            frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
+        }
     } else {
-        // Return an invalid value (you may want to handle this differently based on your application)
-        return '\0';  // '\0' is often used to represent an invalid or null character
+        // Handle the case where the start marker is not found
+        // You may want to handle this differently based on your application
+        frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
+    }
+}
+
+// Function to modify the data based on the functional code in the frame
+void parseDataInFrame(char *frame, card* dataCard)
+{
+    char functionalCode = frame[2];
+
+    // Extract data based on the functional code
+    switch (functionalCode) {
+        case 'A':
+            currentEvent = E_ADD;
+            if (strlen(frame) >= 42) {
+                strncpy(dataCard->name, frame + 6, 32);
+                dataCard->name[31] = '\0';  // Ensure null-terminated string
+                dataCard->id = *(uint32_t*)(frame + 38);
+            }
+            break;
+
+        case 'D':
+            currentEvent = E_REMOVE;
+            if (strlen(frame) >= 10) {
+                dataCard->id = *(uint32_t*)(frame + 6);
+            }
+            break;
+
+        case 'V':
+            currentEvent = E_ACKED;
+            break;
+
+        case 'S':
+            currentEvent = E_SYNC;
+            break;
+
+        case 'F':
+            currentEvent = E_FINISHED;
+            break;
+
+        case 'R':
+            currentEvent = E_REQUEST;
+            break;
+
+        case 'U':
+            currentEvent = E_UPDATE;
+            if (strlen(frame) >= 46) {
+                strncpy(dataCard->name, frame + 6, 32);
+                dataCard->name[31] = '\0';  // Ensure null-terminated string
+                dataCard->id = *(uint32_t*)(frame + 38);
+                memcpy(dataCard->uuid, frame + 42, sizeof(dataCard->uuid));
+            }
+            break;
+        default:
+            // Handle invalid functional code
+            break;
     }
 }
 

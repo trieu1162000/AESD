@@ -18,6 +18,7 @@
 #include "queue_cards_api.h"
 #include "eeprom_api.h"
 
+#define MAX_FRAME_SIZE        60
 #define WRITE_NAME_BLOCK      1
 #define WRITE_ID_BLOCK        2
 #define MAX_LEN               16
@@ -28,8 +29,9 @@
 
 extern unsigned char str[MAX_LEN];
 extern unsigned char cardID[CARD_LENGTH];
-
+extern char receivedFrame[MAX_FRAME_SIZE];
 // This var is used for both
+extern char functionalCode;
 extern int8_t detectedFlag;
 extern uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH];
 extern card verifiedCard;
@@ -40,10 +42,11 @@ static void verifiedSending(const card* myCard);
 static void normalDisplay(void);
 static void warningDisplay(void);
 static void passDisplay(void);
-static char parseFrame(const char* frame);
 static void sync1Card(card* syncCard);
 static int8_t writeID(uint8_t id);
 static int8_t writeName(uint8_t* name);
+static void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]);
+static void parseDataInFrame(char *frame, card *dataCard);
 
 // Actions for base system. These will be used
 extern int8_t bVerifyAction(void);
@@ -54,7 +57,9 @@ extern void bStopAction(void);
 extern void bReceiveAction(void);
 extern void bSyncAction(cardQueue *queue);
 extern void bWriteAction(void);
-extern void bUpdateAction(void);
-extern void bRemoveAction(void);
+extern bool bUpdateAction(uint32_t id, const char *name, uint32_t *uuid);
+extern bool bRemoveAction(uint32_t id);
+extern void bACKRequest(void);
+extern void bACKAdded(void);
 
 #endif /* MY_LIBS_INC_ACTIONS_API_H_ */

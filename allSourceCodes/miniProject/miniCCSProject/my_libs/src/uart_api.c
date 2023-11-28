@@ -16,7 +16,7 @@
 
 #include "../inc/uart_api.h"
 
-uint8_t receiveFrame[FRAME_LENGTH];
+uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
 
 void UARTStringPut(uint32_t ui32Base,const char *str){
 
@@ -50,32 +50,13 @@ void UARTIntHandler(void)
     // Loop while there are characters in the receive FIFO.
     //
     // Wait until the UART receiver has data
-    while (1) {
-        // Wait until the UART receiver has data
-        while (!UARTCharsAvail(UART1_BASE));
+    while (!UARTCharsAvail(UART1_BASE))
+    {
 
         // Read a byte
-        char receivedByte = UARTCharGetNonBlocking(UART1_BASE);
+        rawReceivedFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
+        i++;
 
-        // Check for the header (0xFFAA)
-        if (i == 0 && receivedByte == 0xFF) {
-            receiveFrame[i++] = receivedByte;  // Start of the potential header
-        } else if (i == 1 && receivedByte == 0xAA) {
-            receiveFrame[i++] = receivedByte;  // Second byte of the header
-            break;  // Exit the loop since the header is detected
-        } else {
-            // Reset if the received byte does not match the header
-            i = 0;
-        }
-    }
-
-    // Continue reading the rest of the receiveFrame
-    for (; i < 5; i++) {
-        // Wait until the UART receiver has data
-        while (!UARTCharsAvail(UART1_BASE));
-
-        // Read a byte
-        receiveFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
     }
 
     // Raise an ISR Receive Flag

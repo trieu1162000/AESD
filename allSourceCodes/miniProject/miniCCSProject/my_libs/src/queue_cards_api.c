@@ -8,6 +8,7 @@
 #include "../inc/queue_cards_api.h"
 
 cardQueue cardQueueForEEPROM;
+card cardNeedToDo;
 
 void initCard(card *card)
 {
@@ -101,6 +102,8 @@ card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
         }
     }
 
+    // Here, there is no match card
+    return;
 }
 
 // Function to get the UUIDs of authorized cards
@@ -116,13 +119,14 @@ void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_L
 
 // Function to remove a card from the queue based on ID
 bool removeCard(cardQueue *queue, uint32_t id) {
-    for (int i = 0; i < queue->numCards; i++) {
+    int i, j;
+    for (i = 0; i < queue->numCards; i++) {
         if (queue->authorizedCards[i].id == id) {
             // Found the card with the specified ID, remove it and shift other elements
-            for (int j = i; j < queue->numCards - 1; j++) {
+            for (j = i; j < queue->numCards - 1; j++) {
                 queue->authorizedCards[j] = queue->authorizedCards[j + 1];
             }
-            initEmptyCard(&queue->authorizedCards[queue->numCards - 1]);
+            initCard(&queue->authorizedCards[queue->numCards - 1]);
             queue->numCards--;
             return true;  // Card removed successfully
         }
@@ -130,17 +134,18 @@ bool removeCard(cardQueue *queue, uint32_t id) {
     return false;  // Card with the specified ID not found
 }
 
-// Function to update the fields of a card based on UUID, ID, and name
-bool updateCardBaseOnUUID(cardQueue *queue, uint32_t id, const char *name, const uint32_t *uuid) {
-    for (int i = 0; i < queue->numCards; i++) {
-        if (queue->authorizedCards[i].id == id) {
-            // Found the card with the specified ID, update its fields
-            strncpy(queue->authorizedCards[i].name, name, sizeof(queue->authorizedCards[i].name) - 1);
+// Function to update the fields of a card based on UUID, and replace name and id
+bool updateCardBaseOnUUID(cardQueue *queue, const uint32_t *uuid, const char *newName, uint32_t newId) {
+    int i;
+    for (i = 0; i < queue->numCards; i++) {
+        if (memcmp(queue->authorizedCards[i].uuid, uuid, sizeof(queue->authorizedCards[i].uuid)) == 0) {
+            // Found the card with the specified UUID, update its fields
+            strncpy(queue->authorizedCards[i].name, newName, sizeof(queue->authorizedCards[i].name) - 1);
             queue->authorizedCards[i].name[sizeof(queue->authorizedCards[i].name) - 1] = '\0';  // Ensure null-terminated string
-            queue->authorizedCards[i].id = id;
-            memcpy(queue->authorizedCards[i].uuid, uuid, sizeof(queue->authorizedCards[i].uuid));
+            queue->authorizedCards[i].id = newId;
             return true;  // Card updated successfully
         }
     }
-    return false;  // Card with the specified ID not found
+    return false;  // Card with the specified UUID not found
 }
+

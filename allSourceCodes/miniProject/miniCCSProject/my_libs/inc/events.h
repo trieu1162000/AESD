@@ -20,7 +20,8 @@ typedef enum {
     E_ADD,                  // after parsing, add card event is raised
     E_UPDATE,               // after parsing, update card event is raised
     E_REMOVE,               // after parsing, remove card event is raised
-    E_ACKED,                // after parsing, ACK for an action is received from GUI 
+    E_ACKED,                // after parsing, ACK for an action is received from GUI
+    E_REQUEST,              // GUI send an initiate request to start exchange data with the system
 } systemEvents_t;
 
 extern systemEvents_t currentEvent;

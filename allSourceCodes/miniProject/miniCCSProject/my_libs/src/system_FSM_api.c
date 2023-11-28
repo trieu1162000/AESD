@@ -120,6 +120,10 @@ void systemStateMachineUpdate(void)
                         currentEvent = E_FINISHED;
                         DBG("State = STOPPED\n");
                         break;
+                    case E_REQUEST:
+                        // TODO: Send ACK action
+                        DBG("GUI Request. Keep State = PARSING\n");
+                        break;
                     case E_FINISHED:
                         currentState = S_STOPPED;
                         DBG("State = STOPPED\n");
