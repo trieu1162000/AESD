@@ -2,9 +2,11 @@ G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\bin\Debu
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\bin\Debug\projectGUIApp.exe
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\bin\Debug\projectGUIApp.pdb
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.AssemblyReference.cache
-G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.Form1.resources
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.Properties.Resources.resources
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.GenerateResource.cache
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.CoreCompileInputs.cache
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.exe
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.pdb
+G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.mainDashboard.resources
+G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.settingCOMForm.resources
+G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.reportForm.resources
