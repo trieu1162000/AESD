@@ -106,12 +106,12 @@ void systemStateMachineUpdate(void)
                         DBG("State = ADDING\n");
                         break;
                     case E_REMOVE:
-                        bRemoveAction();
+                        bRemoveAction(cardNeedToDo.id);
                         currentState = S_REMOVING;
                         DBG("State = REMOVING\n");
                         break;
                     case E_UPDATE:
-                        bUpdateAction();
+                        bUpdateAction(&cardNeedToDo);
                         currentState = S_UPDATING;
                         DBG("State = UPDATING\n");
                         break;
@@ -121,7 +121,7 @@ void systemStateMachineUpdate(void)
                         DBG("State = STOPPED\n");
                         break;
                     case E_REQUEST:
-                        // TODO: Send ACK action
+                        bACKRequest();
                         DBG("GUI Request. Keep State = PARSING\n");
                         break;
                     case E_FINISHED:

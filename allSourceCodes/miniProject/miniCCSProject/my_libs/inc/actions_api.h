@@ -28,7 +28,7 @@
 #define YET_VERIFY            0
 
 extern unsigned char str[MAX_LEN];
-extern unsigned char cardID[CARD_LENGTH];
+extern unsigned char cardUUID[CARD_LENGTH];
 extern char receivedFrame[MAX_FRAME_SIZE];
 // This var is used for both
 extern char functionalCode;
@@ -37,14 +37,14 @@ extern uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH];
 extern card verifiedCard;
 
 // These functions only be used in actions_api
-static void dumpHex(unsigned char* buffer, int len);
-static void verifiedSending(const card* myCard);
+static void dumpHex(unsigned char *buffer, int len);
+static void verifiedSending(const card *myCard);
 static void normalDisplay(void);
 static void warningDisplay(void);
 static void passDisplay(void);
-static void sync1Card(card* syncCard);
+static void sync1Card(card *syncCard);
 static int8_t writeID(uint8_t id);
-static int8_t writeName(uint8_t* name);
+static int8_t writeName(uint8_t *name);
 static void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]);
 static void parseDataInFrame(char *frame, card *dataCard);
 
@@ -57,7 +57,7 @@ extern void bStopAction(void);
 extern void bReceiveAction(void);
 extern void bSyncAction(cardQueue *queue);
 extern void bWriteAction(void);
-extern bool bUpdateAction(uint32_t id, const char *name, uint32_t *uuid);
+extern bool bUpdateAction(card *updateCard);
 extern bool bRemoveAction(uint32_t id);
 extern void bACKRequest(void);
 extern void bACKAdded(void);

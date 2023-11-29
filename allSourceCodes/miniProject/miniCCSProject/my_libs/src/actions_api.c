@@ -8,13 +8,11 @@
 #include "../inc/actions_api.h"
 
 int8_t detectedFlag = MI_NOTAGERR;
-unsigned char str[MAX_LEN];
-unsigned char cardID[CARD_LENGTH];
+unsigned char str[MAX_LEN] = {0};
+unsigned char cardUUID[CARD_LENGTH] = {0};
 unsigned char funnctionalCode = 0; 
-
 uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
-card addedCard;
 char receivedFrame[MAX_FRAME_SIZE] = {0};
 
 static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -25,10 +23,10 @@ int8_t bVerifyAction(void)
     int i;
     getAuthorizedCardsUUID(&cardQueueForEEPROM, authorizedCardUUIDs);
     DBG("Verify ID: \n\r");
-    dumpHex((unsigned char *)cardID, CARD_LENGTH);
+    dumpHex((unsigned char *)cardUUID, CARD_LENGTH);
     for (i = 0; i < MAX_CARDS; ++i) {
-        if (memcmp(cardID, authorizedCardUUIDs[i], CARD_LENGTH) == 0) {
-            verifiedCard = getCardFromUUID(&cardQueueForEEPROM, (uint32_t *) cardID);
+        if (memcmp(cardUUID, authorizedCardUUIDs[i], CARD_LENGTH) == 0) {
+            verifiedCard = getCardFromUUID(&cardQueueForEEPROM, (uint32_t *) cardUUID);
             return VERIFY_PASS;  // Card is authorized
         }
     }
@@ -46,11 +44,11 @@ int8_t bPollingAction(void)
     }
 
     status = rc522Anticoll(&str[2]);
-    memcpy(cardID, &str[2], 5);
+    memcpy(cardUUID, &str[2], 5);
 
     if(status == MI_OK){
         DBG("ID: \n\r");
-        dumpHex((unsigned char *)cardID, CARD_LENGTH);
+        dumpHex((unsigned char *)cardUUID, CARD_LENGTH);
         SysCtlDelay(SysCtlClockGet()/3); //Delay
         GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, LOW_PIN);
     }
@@ -117,9 +115,9 @@ void bStopAction(void)
 
 void bReceiveAction(void)
 {
-    // Get the frame
+    // Get the data into the frame from the raw data
     parseFirstFrameInRawData((char *) rawReceivedFrame, receivedFrame);
-    // Parsing the receive frame
+    // Parsing the data in receive frame into the card
     parseDataInFrame(receivedFrame, &cardNeedToDo);
 }
 
@@ -141,10 +139,15 @@ void bSyncAction(cardQueue *queue)
 // This action is used for adding new card
 void bWriteAction(void)
 {
+    int i;
+
+    for (i = 0; i < CARD_LENGTH; i++)
+        cardNeedToDo.uuid[i] = (uint32_t) cardUUID[i];
     // Write for existing card
-    writeName((uint8_t *) addedCard.name);
-    writeID(addedCard.id);
+    writeName((uint8_t *) cardNeedToDo.name);
+    writeID(cardNeedToDo.id);
     // Sync to the database in Tiva C
+    enqueueCard(&cardQueueForEEPROM, cardNeedToDo.name, cardNeedToDo.id, cardNeedToDo.uuid);
 
 }
 
@@ -153,11 +156,12 @@ bool bRemoveAction(uint32_t id)
     return removeCard(&cardQueueForEEPROM, id);
 }
 
-bool bUpdateAction(uint32_t id, const char *name, uint32_t *uuid)
+bool bUpdateAction(card *updateCard)
 {
-    return updateCardBaseOnUUID(&cardQueueForEEPROM, uuid, name, id);
+    return updateCardBaseOnUUID(&cardQueueForEEPROM, updateCard->uuid, updateCard->name, updateCard->id);
 }
 
+// Function to send back the ACK when GUI Requests
 void bACKRequest(void)
 {
     // Frame: 0xFFAA - 'O' - 0xAAFF
@@ -176,7 +180,7 @@ void bACKRequest(void)
 void bACKAdded(void)
 {
     int i = 0;
-    // After passinng, the data in the card will be sent to the GUI
+    // After adding, the UUID in the card will be sent back to the GUI
     // Frame: 0xFFAA - 'A' - data (UUID) - 0xAAFF
     // Start of Frame
     UARTCharPut(UART1_BASE, 0xFF);
@@ -185,9 +189,9 @@ void bACKAdded(void)
     // Identifier 'A' for indicating the data is from the "card" structure
     UARTCharPut(UART1_BASE, 'A');
 
-    // Send UUID
-    for (i = 0; i < sizeof(syncCard->uuid) / sizeof(uint32_t); i++) {
-        UARTCharPut(UART1_BASE, (uint8_t) syncCard->uuid[i]);
+    // Send back UUID to the GUI after adding Name and ID in Tiva C
+    for (i = 0; i < sizeof(cardNeedToDo.uuid) / sizeof(uint32_t); i++) {
+        UARTCharPut(UART1_BASE, (uint8_t) cardNeedToDo.uuid[i]);
     }
 
     // End of Frame
@@ -206,7 +210,7 @@ void dumpHex(unsigned char* buffer, int len){
     UARTprintf("  FIM! \r\n"); //End
 
 }
-// Function to sending the data of the verified card
+// Function to send the data of the verified card
 void verifiedSending(const card* myCard)
 {
     int i;
@@ -267,6 +271,7 @@ void passDisplay()
 // Function to parse the first frame in raw data
 void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
     
+    // Reset the core frame before get the data into it
     memset(frame, 0, MAX_FRAME_SIZE);
 
     // Search for the start marker (0xFFAA) in the raw data
@@ -301,9 +306,12 @@ void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
 }
 
 // Function to modify the data based on the functional code in the frame
-void parseDataInFrame(char *frame, card* dataCard)
+void parseDataInFrame(char *frame, card *dataCard)
 {
     char functionalCode = frame[2];
+
+    // Reset the card first, then parse it later
+    initCard(dataCard);
 
     // Extract data based on the functional code
     switch (functionalCode) {
@@ -354,7 +362,7 @@ void parseDataInFrame(char *frame, card* dataCard)
     }
 }
 
-void sync1Card(card* syncCard)
+void sync1Card(card *syncCard)
 {
     int i = 0;
     // After passinng, the data in the card will be sent to the GUI
@@ -393,7 +401,7 @@ int8_t writeID(uint8_t id)
 {
     int8_t status;
 
-    status = rc522Auth(PICC_AUTHENT1A, WRITE_ID_BLOCK, passWd, (uint8_t *) &addedCard.uuid);
+    status = rc522Auth(PICC_AUTHENT1A, WRITE_ID_BLOCK, passWd, (uint8_t *) &cardNeedToDo.uuid);
     if(status!=MI_OK)
     {
         DBG("write authrioze err.\n");
@@ -407,11 +415,11 @@ int8_t writeID(uint8_t id)
     return status;
 }
 
-int8_t writeName(uint8_t* name)
+int8_t writeName(uint8_t *name)
 {
     int8_t status;
 
-    status = rc522Auth(PICC_AUTHENT1A, WRITE_NAME_BLOCK, passWd, (uint8_t *) &addedCard.uuid);
+    status = rc522Auth(PICC_AUTHENT1A, WRITE_NAME_BLOCK, passWd, (uint8_t *) &cardNeedToDo.uuid);
     if(status!=MI_OK)
     {
         DBG("write authrioze err.\n");

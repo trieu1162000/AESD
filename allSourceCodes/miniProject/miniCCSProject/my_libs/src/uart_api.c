@@ -36,6 +36,10 @@ void UARTIntHandler(void)
 {
     uint32_t ui32Status;
     int8_t i = 0;
+
+    // Need to reset the frame before receiving
+    memset(rawReceivedFrame, 0, MAX_FRAME_LENGTH);
+
     //
     // Get the interrrupt status.
     //
