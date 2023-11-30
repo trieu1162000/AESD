@@ -15,6 +15,9 @@ namespace projectGUIApp
     public partial class mainDashboard : Form
     {
         public settingCOMForm comSettingsForm;
+
+        public cardManagerForm manageCardForm;
+
         public SerialPort serialPORT { get; }
         public mainDashboard()
         {
@@ -104,20 +107,20 @@ namespace projectGUIApp
         private void cardManagerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // TODO: Change this accordingly
-            if (comSettingsForm == null || comSettingsForm.IsDisposed)
+            if (manageCardForm == null || manageCardForm.IsDisposed)
             {
                 // Create a new instance if the form is not yet created or has been disposed
-                comSettingsForm = new settingCOMForm(this);
+                manageCardForm = new cardManagerForm(this);
             }
 
             // Show the form as a dialog
-            comSettingsForm.ShowDialog();
+            manageCardForm.ShowDialog();
 
             // Check if the form is disposed (closed by the user)
-            if (comSettingsForm.IsDisposed)
+            if (manageCardForm.IsDisposed)
             {
                 // Optionally set the form variable to null if you want to recreate it next time
-                comSettingsForm = null;
+                manageCardForm = null;
 
                 // Perform any other actions after the form is closed
             }
@@ -125,6 +128,14 @@ namespace projectGUIApp
             {
                 // The form is still open, and you can continue using it
             }
+        }
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string message = "This software is designed for a Final Project:" +
+                 "\nMonitoring & Controlling of Access Control System (ACS) using RFID." +
+                 "\nAt Ho Chi Minh City University of Technology (HCMUT)." +
+                 "\n\nDesigned by Group 6.";
+            MessageBox.Show(message, "About this software", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

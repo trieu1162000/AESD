@@ -23,7 +23,7 @@ namespace projectGUIApp
         {
             InitializeComponent();
             this.mainForm = mainForm;
-            serialPORT = mainForm.serialPORT;
+            this.serialPORT = mainForm.serialPORT;
 
         }
 
