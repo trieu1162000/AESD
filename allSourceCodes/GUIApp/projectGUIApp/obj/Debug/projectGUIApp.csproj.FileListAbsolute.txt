@@ -24,3 +24,4 @@ D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGU
 D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.exe
 D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.pdb
 D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.cardManagerForm.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.addCardForm.resources

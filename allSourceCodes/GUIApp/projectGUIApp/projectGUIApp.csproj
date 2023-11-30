@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="addCardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="addCardForm.Designer.cs">
+      <DependentUpon>addCardForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="cardManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -72,6 +78,9 @@
     <Compile Include="settingCOMForm.Designer.cs">
       <DependentUpon>settingCOMForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="addCardForm.resx">
+      <DependentUpon>addCardForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="cardManagerForm.resx">
       <DependentUpon>cardManagerForm.cs</DependentUpon>
     </EmbeddedResource>

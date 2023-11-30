@@ -236,8 +236,9 @@ namespace projectGUIApp
             this.Controls.Add(this.mnstrHomeScr);
             this.Controls.Add(this.comStatusGrpBx);
             this.Controls.Add(this.monitorListGrpBx);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "mainDashboard";
-            this.Text = "mainDashBoardForm";
+            this.Text = "Access Control System";
             this.monitorListGrpBx.ResumeLayout(false);
             this.comStatusGrpBx.ResumeLayout(false);
             this.mnstrHomeScr.ResumeLayout(false);

@@ -64,5 +64,30 @@ namespace projectGUIApp
             string sFrame = $"0xFFAA{action}{name}{id}0xAAFF";
             return sFrame;
         }
+
+        private void btnRemoveCard_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
