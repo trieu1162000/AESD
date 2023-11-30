@@ -10,21 +10,13 @@ using System.Windows.Forms;
 
 namespace projectGUIApp
 {
-    public partial class Form1 : Form
+    public partial class processingForm : Form
     {
-        public Form1()
+        private readonly cardManagerForm fCardManagerForm;
+        public processingForm(cardManagerForm fCardManagerForm)
         {
             InitializeComponent();
-        }
-
-        private void listViewTask_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void editCardToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+            this.fCardManagerForm = fCardManagerForm;
         }
     }
 }

@@ -38,16 +38,20 @@
             this.btnSyncCard = new System.Windows.Forms.Button();
             this.btnCardManagementOK = new System.Windows.Forms.Button();
             this.groupBoxUpdateCard = new System.Windows.Forms.GroupBox();
+            this.lbUpdateName = new System.Windows.Forms.Label();
+            this.txtBoxUpdateID = new System.Windows.Forms.TextBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.txtBoxUpdateName = new System.Windows.Forms.TextBox();
             this.btnUpdateCard = new System.Windows.Forms.Button();
+            this.lbBoxUpdateID = new System.Windows.Forms.Label();
             this.lbUpdateUUID = new System.Windows.Forms.Label();
             this.cbbUpdateUUID = new System.Windows.Forms.ComboBox();
             this.groupBoxAddCard = new System.Windows.Forms.GroupBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.lbNameAdd = new System.Windows.Forms.Label();
             this.btnAddCard = new System.Windows.Forms.Button();
-            this.txbAddID = new System.Windows.Forms.TextBox();
-            this.txbAddName = new System.Windows.Forms.TextBox();
+            this.txtBoxAddID = new System.Windows.Forms.TextBox();
+            this.txtBoxAddName = new System.Windows.Forms.TextBox();
             this.lbAddID = new System.Windows.Forms.Label();
             this.groupBoxListCards = new System.Windows.Forms.GroupBox();
             this.groupBoxRemoveCard = new System.Windows.Forms.GroupBox();
@@ -55,10 +59,6 @@
             this.btnRemoveCard = new System.Windows.Forms.Button();
             this.lbRemoveID = new System.Windows.Forms.Label();
             this.cbbRemoveID = new System.Windows.Forms.ComboBox();
-            this.lbUpdateName = new System.Windows.Forms.Label();
-            this.txtBoxUpdateID = new System.Windows.Forms.TextBox();
-            this.txtBoxUpdateName = new System.Windows.Forms.TextBox();
-            this.lbBoxUpdateID = new System.Windows.Forms.Label();
             this.groupBoxUpdateCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.groupBoxAddCard.SuspendLayout();
@@ -99,6 +99,8 @@
             this.ID});
             this.listViewCard.Font = new System.Drawing.Font("Segoe UI", 9.25F);
             this.listViewCard.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.listViewCard.FullRowSelect = true;
+            this.listViewCard.GridLines = true;
             this.listViewCard.HideSelection = false;
             this.listViewCard.Location = new System.Drawing.Point(8, 26);
             this.listViewCard.Name = "listViewCard";
@@ -154,6 +156,29 @@
             this.groupBoxUpdateCard.TabStop = false;
             this.groupBoxUpdateCard.Text = "     Update";
             // 
+            // lbUpdateName
+            // 
+            this.lbUpdateName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.lbUpdateName.AutoSize = true;
+            this.lbUpdateName.Font = new System.Drawing.Font("Segoe UI", 10.25F);
+            this.lbUpdateName.ForeColor = System.Drawing.Color.Navy;
+            this.lbUpdateName.Location = new System.Drawing.Point(17, 89);
+            this.lbUpdateName.Name = "lbUpdateName";
+            this.lbUpdateName.Size = new System.Drawing.Size(48, 19);
+            this.lbUpdateName.TabIndex = 19;
+            this.lbUpdateName.Text = "Name:";
+            this.lbUpdateName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // txtBoxUpdateID
+            // 
+            this.txtBoxUpdateID.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.txtBoxUpdateID.Location = new System.Drawing.Point(71, 114);
+            this.txtBoxUpdateID.Name = "txtBoxUpdateID";
+            this.txtBoxUpdateID.Size = new System.Drawing.Size(155, 25);
+            this.txtBoxUpdateID.TabIndex = 22;
+            this.txtBoxUpdateID.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
             // pictureBox2
             // 
             this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
@@ -163,6 +188,15 @@
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 19;
             this.pictureBox2.TabStop = false;
+            // 
+            // txtBoxUpdateName
+            // 
+            this.txtBoxUpdateName.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.txtBoxUpdateName.Location = new System.Drawing.Point(71, 56);
+            this.txtBoxUpdateName.Multiline = true;
+            this.txtBoxUpdateName.Name = "txtBoxUpdateName";
+            this.txtBoxUpdateName.Size = new System.Drawing.Size(155, 52);
+            this.txtBoxUpdateName.TabIndex = 20;
             // 
             // btnUpdateCard
             // 
@@ -174,6 +208,20 @@
             this.btnUpdateCard.TabIndex = 17;
             this.btnUpdateCard.Text = "Update";
             this.btnUpdateCard.UseVisualStyleBackColor = true;
+            // 
+            // lbBoxUpdateID
+            // 
+            this.lbBoxUpdateID.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.lbBoxUpdateID.AutoSize = true;
+            this.lbBoxUpdateID.Font = new System.Drawing.Font("Segoe UI", 10.25F);
+            this.lbBoxUpdateID.ForeColor = System.Drawing.Color.Navy;
+            this.lbBoxUpdateID.Location = new System.Drawing.Point(17, 120);
+            this.lbBoxUpdateID.Name = "lbBoxUpdateID";
+            this.lbBoxUpdateID.Size = new System.Drawing.Size(26, 19);
+            this.lbBoxUpdateID.TabIndex = 21;
+            this.lbBoxUpdateID.Text = "ID:";
+            this.lbBoxUpdateID.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lbUpdateUUID
             // 
@@ -206,8 +254,8 @@
             this.groupBoxAddCard.Controls.Add(this.pictureBox1);
             this.groupBoxAddCard.Controls.Add(this.lbNameAdd);
             this.groupBoxAddCard.Controls.Add(this.btnAddCard);
-            this.groupBoxAddCard.Controls.Add(this.txbAddID);
-            this.groupBoxAddCard.Controls.Add(this.txbAddName);
+            this.groupBoxAddCard.Controls.Add(this.txtBoxAddID);
+            this.groupBoxAddCard.Controls.Add(this.txtBoxAddName);
             this.groupBoxAddCard.Controls.Add(this.lbAddID);
             this.groupBoxAddCard.Font = new System.Drawing.Font("Segoe UI Semibold", 11F, System.Drawing.FontStyle.Bold);
             this.groupBoxAddCard.ForeColor = System.Drawing.Color.DarkRed;
@@ -254,22 +302,22 @@
             this.btnAddCard.UseVisualStyleBackColor = true;
             this.btnAddCard.Click += new System.EventHandler(this.btnAdd_Click);
             // 
-            // txbAddID
+            // txtBoxAddID
             // 
-            this.txbAddID.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-            this.txbAddID.Location = new System.Drawing.Point(71, 79);
-            this.txbAddID.Name = "txbAddID";
-            this.txbAddID.Size = new System.Drawing.Size(155, 25);
-            this.txbAddID.TabIndex = 16;
+            this.txtBoxAddID.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.txtBoxAddID.Location = new System.Drawing.Point(71, 79);
+            this.txtBoxAddID.Name = "txtBoxAddID";
+            this.txtBoxAddID.Size = new System.Drawing.Size(155, 25);
+            this.txtBoxAddID.TabIndex = 16;
             // 
-            // txbAddName
+            // txtBoxAddName
             // 
-            this.txbAddName.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-            this.txbAddName.Location = new System.Drawing.Point(71, 21);
-            this.txbAddName.Multiline = true;
-            this.txbAddName.Name = "txbAddName";
-            this.txbAddName.Size = new System.Drawing.Size(155, 52);
-            this.txbAddName.TabIndex = 10;
+            this.txtBoxAddName.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
+            this.txtBoxAddName.Location = new System.Drawing.Point(71, 21);
+            this.txtBoxAddName.Multiline = true;
+            this.txtBoxAddName.Name = "txtBoxAddName";
+            this.txtBoxAddName.Size = new System.Drawing.Size(155, 52);
+            this.txtBoxAddName.TabIndex = 10;
             // 
             // lbAddID
             // 
@@ -363,52 +411,6 @@
             this.cbbRemoveID.Size = new System.Drawing.Size(155, 25);
             this.cbbRemoveID.TabIndex = 17;
             // 
-            // lbUpdateName
-            // 
-            this.lbUpdateName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.lbUpdateName.AutoSize = true;
-            this.lbUpdateName.Font = new System.Drawing.Font("Segoe UI", 10.25F);
-            this.lbUpdateName.ForeColor = System.Drawing.Color.Navy;
-            this.lbUpdateName.Location = new System.Drawing.Point(17, 89);
-            this.lbUpdateName.Name = "lbUpdateName";
-            this.lbUpdateName.Size = new System.Drawing.Size(48, 19);
-            this.lbUpdateName.TabIndex = 19;
-            this.lbUpdateName.Text = "Name:";
-            this.lbUpdateName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // txtBoxUpdateID
-            // 
-            this.txtBoxUpdateID.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-            this.txtBoxUpdateID.Location = new System.Drawing.Point(71, 114);
-            this.txtBoxUpdateID.Name = "txtBoxUpdateID";
-            this.txtBoxUpdateID.Size = new System.Drawing.Size(155, 25);
-            this.txtBoxUpdateID.TabIndex = 22;
-            this.txtBoxUpdateID.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // txtBoxUpdateName
-            // 
-            this.txtBoxUpdateName.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold);
-            this.txtBoxUpdateName.Location = new System.Drawing.Point(71, 56);
-            this.txtBoxUpdateName.Multiline = true;
-            this.txtBoxUpdateName.Name = "txtBoxUpdateName";
-            this.txtBoxUpdateName.Size = new System.Drawing.Size(155, 52);
-            this.txtBoxUpdateName.TabIndex = 20;
-            // 
-            // lbBoxUpdateID
-            // 
-            this.lbBoxUpdateID.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.lbBoxUpdateID.AutoSize = true;
-            this.lbBoxUpdateID.Font = new System.Drawing.Font("Segoe UI", 10.25F);
-            this.lbBoxUpdateID.ForeColor = System.Drawing.Color.Navy;
-            this.lbBoxUpdateID.Location = new System.Drawing.Point(17, 120);
-            this.lbBoxUpdateID.Name = "lbBoxUpdateID";
-            this.lbBoxUpdateID.Size = new System.Drawing.Size(26, 19);
-            this.lbBoxUpdateID.TabIndex = 21;
-            this.lbBoxUpdateID.Text = "ID:";
-            this.lbBoxUpdateID.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // cardManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -419,6 +421,7 @@
             this.Controls.Add(this.groupBoxUpdateCard);
             this.Controls.Add(this.groupBoxAddCard);
             this.Name = "cardManagerForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Card Management";
             this.groupBoxUpdateCard.ResumeLayout(false);
             this.groupBoxUpdateCard.PerformLayout();
@@ -451,8 +454,8 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label lbNameAdd;
         private System.Windows.Forms.Button btnAddCard;
-        private System.Windows.Forms.TextBox txbAddID;
-        private System.Windows.Forms.TextBox txbAddName;
+        private System.Windows.Forms.TextBox txtBoxAddID;
+        private System.Windows.Forms.TextBox txtBoxAddName;
         private System.Windows.Forms.Label lbAddID;
         private System.Windows.Forms.GroupBox groupBoxListCards;
         private System.Windows.Forms.GroupBox groupBoxRemoveCard;

@@ -149,17 +149,17 @@
   </data>
   <data name="pictureBox2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAAAHUAAAB1AePCB2UAAAAZdEVYdFNvZnR3YXJlAHd3dy5pbmtzY2FwZS5vcmeb7jwa
-        AAAB30lEQVQ4T2NAB2K5Bw6L5xz4LVl26YBCwXkBqDBhIJp3xEsie99jsfTt/4EG/Aca8F+q/NIJibKL
-        8VAl2IFC98MZsq3X/klVn/sP0oxsAAjLNN79rzjt80/FaZ8WMjT8Z4JqQwCQZtnmK/+l6y9hN6DlIcgA
-        MFae/tkJqg0BQJphGGQIyCUyjdf+y3W/+C/f8/K/4tRPcAOAOBSqDQGQDYBhuc57yJqQMW4D7j549Pve
-        vXv/Qfjly5f/kcCf0HXfrhM0ABkTcsHrHQySbzZxmaIYcOHWo6+37j/+AcaPXr778uv/NRgOXPvtJlDz
-        G6Upn9Teb+Wwe7Sa7ff9lWz/v2/niIEbYDPl1h+f2bd+grDvgofvw9Z/vQbCweu+3VCZ/vml4owv+u+2
-        cVqDNN9bwfb/43a2//8Psr+CG7DzwqMPJ64//gTCh6+/eP7g479jIHzl1Z+d5gu/6GHRDMQcS+EGxC+9
-        +7V4/b1PIFy0+dmzxiM/j7Uf+7Hz+ov/um+3cVpgambf8n8bAzs8ISFjaCD+U5j20QKvZhCQ734wTbYF
-        1RCoATdA8k/XsH28BwywTzDNB9jX/z/DwArWTAj8X8XAdh9oM1wzss3EgI+b2VU/bWP7BtR4FmhzH6bN
-        DAwAEgHfBeU7EwMAAAAASUVORK5CYII=
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAA
+        dQAAAHUB48IHZQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAHfSURBVDhPY0AH
+        YrkHDovnHPgtWXbpgELBeQGoMGEgmnfESyJ732Ox9O3/gQb8BxrwX6r80gmJsovxUCXYgUL3wxmyrdf+
+        SVWf+w/SjGwACMs03v2vOO3zT8VpnxYyNPxngmpDAJBm2eYr/6XrL2E3oOUhyAAwVp7+2QmqDQFAmmEY
+        ZAjIJTKN1/7Ldb/4L9/z8r/i1E9wA4A4FKoNAZANgGG5znvImpAxbgPuPnj0+969e/9B+OXLl/+RwJ/Q
+        dd+uEzQAGRNywesdDJJvNnGZohhw4dajr7fuP/4Bxo9evvvy6/81GA5c++0mUPMbpSmf1N5v5bB7tJrt
+        9/2VbP+/b+eIgRtgM+XWH5/Zt36CsO+Ch+/D1n+9BsLB677dUJn++aXijC/677ZxWoM031vB9v/jdrb/
+        /w+yv4IbsPPCow8nrj/+BMKHr794/uDjv2MgfOXVn53mC7/oYdEMxBxL4QbEL737tXj9vU8gXLT52bPG
+        Iz+PtR/7sfP6i/+6b7dxWmBqZt/yfxsDOzwhIWNoIP5TmPbRAq9mEJDvfjBNtgXVEKgBN0DyT9ewfbwH
+        DLBPMM0H2Nf/P8PACtZMCPxfxcB2H2gzXDOyzcSAj5vZVT9tY/sG1HgWaHMfps0MDAASAd8F5TsTAwAA
+        AABJRU5ErkJggg==
 </value>
   </data>
   <data name="pictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

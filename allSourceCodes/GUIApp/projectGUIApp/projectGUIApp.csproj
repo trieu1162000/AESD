@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>projectGUIApp</RootNamespace>
     <AssemblyName>projectGUIApp</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -46,12 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="addCardForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="addCardForm.Designer.cs">
-      <DependentUpon>addCardForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="cardManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -63,6 +57,12 @@
     </Compile>
     <Compile Include="mainDashboard.Designer.cs">
       <DependentUpon>mainDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="processingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="processingForm.Designer.cs">
+      <DependentUpon>processingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -78,14 +78,14 @@
     <Compile Include="settingCOMForm.Designer.cs">
       <DependentUpon>settingCOMForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="addCardForm.resx">
-      <DependentUpon>addCardForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="cardManagerForm.resx">
       <DependentUpon>cardManagerForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="mainDashboard.resx">
       <DependentUpon>mainDashboard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="processingForm.resx">
+      <DependentUpon>processingForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
