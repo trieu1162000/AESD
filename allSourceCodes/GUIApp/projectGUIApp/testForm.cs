@@ -10,15 +10,16 @@ using System.Windows.Forms;
 
 namespace projectGUIApp
 {
-    public partial class processingForm : Form
+    public partial class testForm : Form
     {
         private cardManagerForm _parentForm;
-        public processingForm(cardManagerForm parentForm)
+
+        public testForm(cardManagerForm parentForm)
         {
             InitializeComponent();
             _parentForm = parentForm;
-        }
 
+        }
         public void ShowCentered()
         {
             int x = _parentForm.Location.X + (_parentForm.Width - Width) / 2;

@@ -272,6 +272,7 @@ namespace projectGUIApp
             this.ClientSize = new System.Drawing.Size(239, 241);
             this.Controls.Add(this.groupBox1);
             this.Name = "settingCOMForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "settingCOMForm";
             this.Load += new System.EventHandler(this.settingCOMFormLoad);
             this.groupBox1.ResumeLayout(false);

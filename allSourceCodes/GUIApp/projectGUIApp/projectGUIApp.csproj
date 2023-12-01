@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>projectGUIApp</RootNamespace>
     <AssemblyName>projectGUIApp</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -78,6 +78,12 @@
     <Compile Include="settingCOMForm.Designer.cs">
       <DependentUpon>settingCOMForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="testForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="testForm.Designer.cs">
+      <DependentUpon>testForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="cardManagerForm.resx">
       <DependentUpon>cardManagerForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -102,6 +108,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="settingCOMForm.resx">
       <DependentUpon>settingCOMForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="testForm.resx">
+      <DependentUpon>testForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

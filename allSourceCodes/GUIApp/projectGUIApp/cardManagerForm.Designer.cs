@@ -208,6 +208,7 @@
             this.btnUpdateCard.TabIndex = 17;
             this.btnUpdateCard.Text = "Update";
             this.btnUpdateCard.UseVisualStyleBackColor = true;
+            this.btnUpdateCard.Click += new System.EventHandler(this.btnUpdate_Click);
             // 
             // lbBoxUpdateID
             // 
@@ -247,6 +248,7 @@
             this.cbbUpdateUUID.Name = "cbbUpdateUUID";
             this.cbbUpdateUUID.Size = new System.Drawing.Size(155, 25);
             this.cbbUpdateUUID.TabIndex = 17;
+            this.cbbUpdateUUID.DropDown += new System.EventHandler(this.cbbUpdateUUID_DropDown);
             // 
             // groupBoxAddCard
             // 
@@ -384,6 +386,7 @@
             this.btnRemoveCard.TabIndex = 17;
             this.btnRemoveCard.Text = "Remove";
             this.btnRemoveCard.UseVisualStyleBackColor = true;
+            this.btnRemoveCard.Click += new System.EventHandler(this.btnRemove_Click);
             // 
             // lbRemoveID
             // 
@@ -410,6 +413,7 @@
             this.cbbRemoveID.Name = "cbbRemoveID";
             this.cbbRemoveID.Size = new System.Drawing.Size(155, 25);
             this.cbbRemoveID.TabIndex = 17;
+            this.cbbRemoveID.DropDown += new System.EventHandler(this.cbbRemoveID_DropDown);
             // 
             // cardManagerForm
             // 

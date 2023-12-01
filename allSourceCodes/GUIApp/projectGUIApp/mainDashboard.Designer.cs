@@ -84,6 +84,7 @@ namespace projectGUIApp
             this.columnHeader5,
             this.columnHeader6});
             this.monitorListView.Font = new System.Drawing.Font("Segoe UI", 9.25F);
+            this.monitorListView.GridLines = true;
             this.monitorListView.HideSelection = false;
             this.monitorListView.Location = new System.Drawing.Point(11, 26);
             this.monitorListView.Name = "monitorListView";
@@ -238,6 +239,7 @@ namespace projectGUIApp
             this.Controls.Add(this.monitorListGrpBx);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "mainDashboard";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Access Control System";
             this.monitorListGrpBx.ResumeLayout(false);
             this.comStatusGrpBx.ResumeLayout(false);
