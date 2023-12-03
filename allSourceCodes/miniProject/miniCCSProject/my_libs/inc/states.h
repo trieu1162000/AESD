@@ -19,6 +19,7 @@ typedef enum {
     S_REMOVING,
     S_UPDATING,
     S_WRITING,
+    S_MANAGING,
 } systemState_t;
 
 extern systemState_t currentState;

@@ -16,7 +16,9 @@
 
 #include "../inc/uart_api.h"
 
-uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
+volatile uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
+volatile uint8_t receivedFrameIndex = 0;
+volatile uint8_t isInFrame = 0;
 
 void UARTStringPut(uint32_t ui32Base,const char *str){
 
@@ -37,9 +39,6 @@ void UARTIntHandler(void)
     uint32_t ui32Status;
     int8_t i = 0;
 
-    // Need to reset the frame before receiving
-    memset(rawReceivedFrame, 0, MAX_FRAME_LENGTH);
-
     //
     // Get the interrrupt status.
     //
@@ -54,16 +53,43 @@ void UARTIntHandler(void)
     // Loop while there are characters in the receive FIFO.
     //
     // Wait until the UART receiver has data
-    while (!UARTCharsAvail(UART1_BASE))
+    // while (UARTCharsAvail(UART1_BASE))
+    // {
+
+    //     // Read a byte
+    //     rawReceivedFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
+    //     i++;
+
+    // }
+
+    while (UARTCharsAvail(UART1_BASE))
     {
+        uint8_t receivedByte = UARTCharGetNonBlocking(UART1_BASE);
 
-        // Read a byte
-        rawReceivedFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
-        i++;
+        // Check for the start of the frame
+        if (!isInFrame && receivedByte == FRAME_START1)
+        {
+            isInFrame = 1;
+            receivedFrameIndex = 0;
+            rawReceivedFrame[0] = receivedByte;
+        }
+        else if (isInFrame)
+        {
+            rawReceivedFrame[++receivedFrameIndex] = receivedByte;
 
+            // Check for the end of the frame
+            if (receivedByte == FRAME_END2)
+            {
+                // Process the complete frame
+                // (you can add your processing logic here)
+
+                // Reset for the next frame
+                isInFrame = 0;
+            }
+        }
     }
 
     // Raise an ISR Receive Flag
-    ISRReceiveFlag = true;
+    ISRReceiveFlag = 1;
 
 }

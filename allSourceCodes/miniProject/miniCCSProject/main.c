@@ -43,7 +43,6 @@ void initTestLED(void)
 int main(void) {
 
     SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
-//    initUART();
 
     //======================================================================================
     // Testing portion
@@ -64,6 +63,7 @@ int main(void) {
 #ifdef  DEBUG
     initConsole();
 #endif
+    initUART();
     DBG("SSI Enabled! SPI Mode!  \r\nData: 8bits.\n\r");
     initRC522();
     initTestLED();
@@ -72,9 +72,7 @@ int main(void) {
     // Testing portion
     //======================================================================================
     // Initialize the card queue
-    cardQueue myCardQueueRead;
-    // initCardQueue(&myCardQueue);
-    initCardQueue(&myCardQueueRead);
+    initCardQueue(&cardQueueForEEPROM);
     uint32_t newCardUUID[] = {0x25, 0xbd, 0x9d, 0x2d, 0x28};
     bool result = false;
     // enqueueCard(&myCardQueue, "Huynh Pham Nhat Trieu", 2370014, authorizedTestCardIDs[0]);
@@ -86,9 +84,9 @@ int main(void) {
     // saveCardsToEEPROM(&myCardQueue);
     // DBG("Save successfully\n");
 
-    loadCardsFromEEPROM(&myCardQueueRead);
+    loadCardsFromEEPROM(&cardQueueForEEPROM);
     
-    printAllCards(&myCardQueueRead);
+    printAllCards(&cardQueueForEEPROM);
 
     // uint32_t authorizedCardTestUUIDs[MAX_CARDS][CARD_LENGTH]  = {0};
     // card verifiedTestCard;
@@ -96,8 +94,8 @@ int main(void) {
     // getAuthorizedCardsUUID(&myCardQueueRead, authorizedCardTestUUIDs);
     // verifiedTestCard = getCardFromUUID(&myCardQueueRead, authorizedCardTestUUIDs[0]);
     // removeCard(&myCardQueueRead, 2370014);
-    result = updateCardBaseOnUUID(&myCardQueueRead, newCardUUID, "Trieu Huynh toi choi", 2366666);
-    printAllCards(&myCardQueueRead);
+    // result = updateCardBaseOnUUID(&myCardQueueRead, newCardUUID, "Trieu Huynh toi choi", 2366666);
+    // printAllCards(&myCardQueueRead);
 
 
 
@@ -106,8 +104,8 @@ int main(void) {
     while(1)
     {
 
-        // systemStateMachineUpdate();
-        // systemEventUpdate();
+        systemStateMachineUpdate();
+        systemEventUpdate();
 
     }
 }

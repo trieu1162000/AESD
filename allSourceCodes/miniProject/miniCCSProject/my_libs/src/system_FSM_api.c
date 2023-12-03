@@ -7,198 +7,217 @@
 
 #include "../inc/system_FSM_api.h"
 
-bool ISRReceiveFlag = false;
+uint8_t ISRReceiveFlag = 0;
 static int8_t verifyFlag = YET_VERIFY;
 
 void systemStateMachineUpdate(void)
 {
 
-        switch (currentState) {
+    bool result = false;
+    switch (currentState)
+    {
 
-            case S_STOPPED:
-                switch (currentEvent) {
-                    case E_DETECTED:
-                        verifyFlag = bVerifyAction();
-                        currentState = S_VERIFYING;
-                        DBG("State = VERIFYING\n");
-                        break;
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    case E_FINISHED: // Polling to detect the card
-                        detectedFlag = bPollingAction();
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_STOPPED:
+            switch (currentEvent) {
+                case E_DETECTED:
+                    verifyFlag = bVerifyAction();
+                    currentState = S_VERIFYING;
+                    DBG("State = VERIFYING\n");
+                    break;
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                case E_FINISHED: // Polling to detect the card
+                    detectedFlag = bPollingAction();
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_VERIFYING:
-                switch (currentEvent) {
-                    case E_AUTHORIZED:
-                        /*
-                         * The card is authorized
-                         */
-                        bPassAction();
-                        currentState = S_UNLOCKING;
-                        DBG("State = UNLOCKING\n");
-                        break;
-                    case E_DENIED:
-                        /*
-                         * The card is denied
-                         */
-                        bFailAction();
-                        currentState = S_WARNING;
-                        DBG("State = WARNING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_VERIFYING:
+            switch (currentEvent) {
+                case E_AUTHORIZED:
+                    /*
+                        * The card is authorized
+                        */
+                    bPassAction();
+                    currentState = S_UNLOCKING;
+                    DBG("State = UNLOCKING\n");
+                    break;
+                case E_DENIED:
+                    /*
+                        * The card is denied
+                        */
+                    bFailAction();
+                    currentState = S_WARNING;
+                    DBG("State = WARNING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_UNLOCKING:
-                switch (currentEvent) {
-                    case E_DETECTED:
-                        verifyFlag = bVerifyAction();
-                        currentState = S_VERIFYING;
-                        DBG("State = VERIFYING\n");
-                        break;
-                    case E_UNLOCKED: // This is a unlock timer event
-                        bStopAction();
-                        currentState = S_STOPPED;
-                        currentEvent = E_FINISHED;
-                        DBG("State = STOPPED\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_UNLOCKING:
+            switch (currentEvent) {
+                case E_DETECTED:
+                    verifyFlag = bVerifyAction();
+                    currentState = S_VERIFYING;
+                    DBG("State = VERIFYING\n");
+                    break;
+                case E_UNLOCKED: // This is a unlock timer event
+                    bStopAction();
+                    currentState = S_STOPPED;
+                    currentEvent = E_FINISHED;
+                    DBG("State = STOPPED\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_WARNING:
-                switch (currentEvent) {
-                    case E_DETECTED:
-                        verifyFlag = bVerifyAction();
-                        DBG("State = VERIFYING\n");
-                        currentState = S_VERIFYING;
-                        break;
-                    case E_FINISHED: // This is a warning timer event
-                        bStopAction();
-                        DBG("State = STOPPED\n");
-                        currentState = S_STOPPED;
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_WARNING:
+            switch (currentEvent) {
+                case E_DETECTED:
+                    verifyFlag = bVerifyAction();
+                    DBG("State = VERIFYING\n");
+                    currentState = S_VERIFYING;
+                    break;
+                case E_FINISHED: // This is a warning timer event
+                    bStopAction();
+                    DBG("State = STOPPED\n");
+                    currentState = S_STOPPED;
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_PARSING:
-                switch (currentEvent) {
-                    case E_SYNC:
-                        bSyncAction(&cardQueueForEEPROM);
-                        currentState = S_SYNCHRONIZING;
-                        DBG("State = SYNCHRONIZING\n");
-                        break;
-                    case E_ADD:
-                        detectedFlag = bPollingAction();
-                        currentState = S_ADDING;
-                        DBG("State = ADDING\n");
-                        break;
-                    case E_REMOVE:
-                        bRemoveAction(cardNeedToDo.id);
-                        currentState = S_REMOVING;
-                        DBG("State = REMOVING\n");
-                        break;
-                    case E_UPDATE:
-                        bUpdateAction(&cardNeedToDo);
-                        currentState = S_UPDATING;
-                        DBG("State = UPDATING\n");
-                        break;
-                    case E_ACKED:
-                        currentState = S_STOPPED;
-                        currentEvent = E_FINISHED;
-                        DBG("State = STOPPED\n");
-                        break;
-                    case E_REQUEST:
-                        bACKRequest();
-                        DBG("GUI Request. Keep State = PARSING\n");
-                        break;
-                    case E_FINISHED:
-                        currentState = S_STOPPED;
-                        DBG("State = STOPPED\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_PARSING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    currentEvent = E_GUI_FINISHED;
+                    currentState = S_STOPPED;
+                    DBG("State = STOPPED\n");
+                    break;
+                case E_SYNC:
+                    bSyncAction(&cardQueueForEEPROM);
+                    currentState = S_SYNCHRONIZING;
+                    DBG("State = SYNCHRONIZING\n");
+                    break;
+                case E_ADD:
+                    detectedFlag = bPollingAction();
+                    currentState = S_ADDING;
+                    DBG("State = ADDING\n");
+                    break;
+                case E_REMOVE:
+                    result = bRemoveAction(cardNeedToDo.id);
+                    if (result)
+                        printAllCards(&cardQueueForEEPROM);
+                    else
+                        DBG("Remove card with specify ID fail\n");
+                    currentState = S_REMOVING;
+                    DBG("State = REMOVING\n");
+                    break;
+                case E_UPDATE:
+                    bUpdateAction(&cardNeedToDo);
+                    currentState = S_UPDATING;
+                    DBG("State = UPDATING\n");
+                    break;
+                case E_GUI_FINISHED:
+                    currentState = S_STOPPED;
+                    currentEvent = E_FINISHED;
+                    DBG("State = STOPPED\n");
+                    break;
+                case E_REQUEST:
+                    bACKRequestAction();
+                    currentState = S_MANAGING;
+                    DBG("State = MANAGING\n");
+                    break;
+                case E_FINISHED:
+                    currentState = S_STOPPED;
+                    DBG("State = STOPPED\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_SYNCHRONIZING:
-                switch (currentEvent) {
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_MANAGING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_ADDING:
-                switch (currentEvent) {
-                    case E_DETECTED:
-                        bWriteAction();
-                        currentState = S_WRITING;
-                        DBG("State = WRITING\n");
-                        break;
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_SYNCHRONIZING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_WRITING:
-                switch (currentEvent) {
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_ADDING:
+            switch (currentEvent) {
+                case E_DETECTED:
+                    bWriteAction();
+                    currentState = S_WRITING;
+                    DBG("State = WRITING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_REMOVING:
-                switch (currentEvent) {
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_WRITING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-            case S_UPDATING:
-                switch (currentEvent) {
-                    case E_ISR_RECEIVE:
-                        bReceiveAction();
-                        currentState = S_PARSING;
-                        DBG("State = PARSING\n");
-                        break;
-                    default:
-                        break;
-                }
-                break;
+        case S_REMOVING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
 
-        }
+        case S_UPDATING:
+            switch (currentEvent) {
+                case E_ISR_RECEIVE:
+                    bReceiveAction();
+                    currentState = S_PARSING;
+                    DBG("State = PARSING\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
+
+    }
 
 }
 
@@ -237,10 +256,10 @@ void systemEventUpdate()
     }
 
     // Some data is received, the flag is already raised
-    if(ISRReceiveFlag)
+    if(ISRReceiveFlag == 1)
     {
         currentEvent = E_ISR_RECEIVE;
-        ISRReceiveFlag = false;
+        ISRReceiveFlag = 0;
     }
 
 }

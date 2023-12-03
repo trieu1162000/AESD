@@ -61,6 +61,10 @@ void initPeriphs(void){
     // Enable for INT TIMER
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+
+    // Enable processor interrupts
+    IntMasterEnable();
+
 }
 
 void initLEDs(void)
@@ -90,7 +94,6 @@ void initTimer(void)
     TimerLoadSet(TIMER0_BASE, TIMER_A, 5*SysCtlClockGet()-1);
     IntEnable(INT_TIMER0A);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    IntMasterEnable();
 }
 
 // Init the I2C used for LCD
@@ -148,6 +151,12 @@ void initUART(void){
 
     UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
+    
+    //
+    // Enable the UART interrupt.
+    //
+    IntEnable(INT_UART1);
+    UARTIntEnable(UART1_BASE, UART_INT_RX | UART_INT_RT);
 }
 
 // Init the UART just used for debugging, comment out the macro in debug.h if not using

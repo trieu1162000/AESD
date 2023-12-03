@@ -45,7 +45,7 @@ static void passDisplay(void);
 static void sync1Card(card *syncCard);
 static int8_t writeID(uint8_t id);
 static int8_t writeName(uint8_t *name);
-static void parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]);
+static bool parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]);
 static void parseDataInFrame(char *frame, card *dataCard);
 
 // Actions for base system. These will be used
@@ -59,7 +59,7 @@ extern void bSyncAction(cardQueue *queue);
 extern void bWriteAction(void);
 extern bool bUpdateAction(card *updateCard);
 extern bool bRemoveAction(uint32_t id);
-extern void bACKRequest(void);
+extern void bACKRequestAction(void);
 extern void bACKAdded(void);
 
 #endif /* MY_LIBS_INC_ACTIONS_API_H_ */

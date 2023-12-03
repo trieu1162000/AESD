@@ -8,8 +8,14 @@
 #include "config_peripherals_api.h"
 
 #define MAX_FRAME_LENGTH 60
+#define FRAME_START1 0xAA
+#define FRAME_START2 0xBB
+#define FRAME_END1   0xCC
+#define FRAME_END2   0xDD
 
-extern bool ISRReceiveFlag;
-extern uint8_t rawReceivedFrame[MAX_FRAME_LENGTH];
+extern volatile uint8_t receivedFrameIndex;
+extern volatile uint8_t isInFrame;
+extern uint8_t ISRReceiveFlag;
+extern volatile uint8_t rawReceivedFrame[MAX_FRAME_LENGTH];
 
 extern void UARTStringPut(uint32_t, const char*);

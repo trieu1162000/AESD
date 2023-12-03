@@ -121,6 +121,7 @@
             this.btnSyncCard.Text = "Sync";
             this.btnSyncCard.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnSyncCard.UseVisualStyleBackColor = true;
+            this.btnSyncCard.Click += new System.EventHandler(this.btnSyncCard_Click);
             // 
             // btnCardManagementOK
             // 
@@ -177,7 +178,6 @@
             this.txtBoxUpdateID.Name = "txtBoxUpdateID";
             this.txtBoxUpdateID.Size = new System.Drawing.Size(155, 25);
             this.txtBoxUpdateID.TabIndex = 22;
-            this.txtBoxUpdateID.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // pictureBox2
             // 
@@ -401,7 +401,6 @@
             this.lbRemoveID.TabIndex = 17;
             this.lbRemoveID.Text = "ID:";
             this.lbRemoveID.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.lbRemoveID.Click += new System.EventHandler(this.label5_Click);
             // 
             // cbbRemoveID
             // 
@@ -424,9 +423,11 @@
             this.Controls.Add(this.groupBoxListCards);
             this.Controls.Add(this.groupBoxUpdateCard);
             this.Controls.Add(this.groupBoxAddCard);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "cardManagerForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Card Management";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.cardManagerForm_FormClosing);
             this.groupBoxUpdateCard.ResumeLayout(false);
             this.groupBoxUpdateCard.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();

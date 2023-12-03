@@ -28,3 +28,4 @@ G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debu
 G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.processingForm.resources
 D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.processingForm.resources
 D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.testForm.resources
+G:\Workspace\learningMaster\TKHTNNC\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.testForm.resources
