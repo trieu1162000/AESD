@@ -31,6 +31,7 @@ extern unsigned char str[MAX_LEN];
 extern unsigned char cardUUID[CARD_LENGTH];
 extern char receivedFrame[MAX_FRAME_SIZE];
 extern size_t receivedFrameLength;
+extern uint8_t idBytes[4];
 
 // This var is used for both
 extern char functionalCode;
@@ -39,6 +40,7 @@ extern uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH];
 extern card verifiedCard;
 
 // These functions only be used in actions_api
+static uint32_t combineBytes(uint8_t bytes[4]);
 static void dumpHex(unsigned char *buffer, int len);
 static void verifiedSending(const card *myCard);
 static void normalDisplay(void);
@@ -47,7 +49,7 @@ static void passDisplay(void);
 static void sync1Card(card *syncCard);
 static int8_t writeID(uint8_t id);
 static int8_t writeName(uint8_t *name);
-static bool parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]);
+static bool parseFirstFrameInRawData(const uint8_t *data_stream, size_t stream_length);
 static void parseDataInFrame(char *frame, card *dataCard);
 
 // Actions for base system. These will be used

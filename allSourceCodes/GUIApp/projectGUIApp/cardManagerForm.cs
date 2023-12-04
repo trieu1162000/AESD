@@ -193,13 +193,13 @@ namespace projectGUIApp
                 // Construct the sRemoveFrame byte array
                 byte[] sRemoveFrame = new byte[]
                 {
-                    0xCC, 0xDD, // Start of frame
+                    0xFF, 0xAA, // Start of frame
                     (byte)'D',   // 'D' stands for delete
                     idBytes[0],   // First byte of ID
                     idBytes[1],   // Second byte of ID
                     idBytes[2],   // First byte of ID
                     idBytes[3],   // Second byte of ID
-                    0xAA, 0xBB     // End of frame
+                    0xAA, 0xFF     // End of frame
                 };
 
                 for (int i = 0; i < sRemoveFrame.Length; i++)

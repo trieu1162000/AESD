@@ -16,9 +16,13 @@
 
 #include "../inc/uart_api.h"
 
-volatile uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
-volatile uint8_t receivedFrameIndex = 0;
-volatile uint8_t isInFrame = 0;
+uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
+uint8_t mainFrame[MAX_FRAME_LENGTH] = {0};
+
+// uint8_t rawReceivedFrame[MAX_FRAME_LENGTH] = {0};
+
+uint8_t receivedFrameIndex = 0;
+//volatile uint8_t isInFrame = 0;
 
 void UARTStringPut(uint32_t ui32Base,const char *str){
 
@@ -37,7 +41,7 @@ void UARTStringPut(uint32_t ui32Base,const char *str){
 void UARTIntHandler(void)
 {
     uint32_t ui32Status;
-    int8_t i = 0;
+    int16_t i = 0;
 
     //
     // Get the interrrupt status.
@@ -66,28 +70,37 @@ void UARTIntHandler(void)
     {
         uint8_t receivedByte = UARTCharGetNonBlocking(UART1_BASE);
 
-        // Check for the start of the frame
-        if (!isInFrame && receivedByte == FRAME_START1)
-        {
-            isInFrame = 1;
-            receivedFrameIndex = 0;
-            rawReceivedFrame[0] = receivedByte;
-        }
-        else if (isInFrame)
-        {
-            rawReceivedFrame[++receivedFrameIndex] = receivedByte;
-
-            // Check for the end of the frame
-            if (receivedByte == FRAME_END2)
-            {
-                // Process the complete frame
-                // (you can add your processing logic here)
-
-                // Reset for the next frame
-                isInFrame = 0;
-            }
-        }
+        rawReceivedFrame[i] = receivedByte;
+        i++;
     }
+    int j;
+    for (j = 0; j < i && receivedFrameIndex < MAX_FRAME_LENGTH; j++) {
+        mainFrame[receivedFrameIndex] = rawReceivedFrame[j];
+        receivedFrameIndex++;
+    }
+//        // Check for the start of the frame
+//        if (!isInFrame && receivedByte == FRAME_START1)
+//        {
+//            isInFrame = 1;
+//            receivedFrameIndex = 0;
+//            rawReceivedFrame[0] = receivedByte;
+//        }
+//        else if (isInFrame)
+//        {
+//            rawReceivedFrame[++receivedFrameIndex] = receivedByte;
+//
+//            // Check for the end of the frame
+//            if (receivedByte == FRAME_END2)
+//            {
+//                // Process the complete frame
+//                // (you can add your processing logic here)
+//                receivedFrameIndex = 0;
+//                // Reset for the next frame
+//                isInFrame = 0;
+//            }
+//        }
+
+
 
     // Raise an ISR Receive Flag
     ISRReceiveFlag = 1;

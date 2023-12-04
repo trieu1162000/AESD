@@ -15,6 +15,7 @@ uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
 char receivedFrame[MAX_FRAME_SIZE] = {0};
 size_t receivedFrameLength = 0;
+uint8_t idBytes[4] = {'\0'};
 
 static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -118,14 +119,15 @@ void bReceiveAction(void)
 {
     int i;
     bool result;
+    size_t rawDataLength  = 0;
 
     DBG("Received Frame: ");
     for(i = 0; i<10; i++)
         UARTprintf("%x ", rawReceivedFrame[i]);
     DBG("\n");
 
-    // Get the data into the frame from the raw data
-    result = parseFirstFrameInRawData((char *) rawReceivedFrame, receivedFrame);
+    rawDataLength = sizeof(mainFrame) / sizeof(mainFrame[0]);    // Get the data into the frame from the raw data
+    result = parseFirstFrameInRawData((uint8_t *) mainFrame, rawDataLength);
     if(result)
     {
         // Parsing the data in receive frame into the card
@@ -135,6 +137,8 @@ void bReceiveAction(void)
 
     // Need to reset the frame before receiving again
     memset(rawReceivedFrame, 0, MAX_FRAME_LENGTH);
+    memset(mainFrame, 0, MAX_FRAME_LENGTH);
+    receivedFrameIndex = 0;
 
 }
 
@@ -289,50 +293,8 @@ void passDisplay()
 }
 
 // Function to parse the first frame in raw data
-bool parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
-    
-    int i;
-    // Reset the core frame before get the data into it
-    memset(frame, 0, MAX_FRAME_SIZE);
-
-    // Search for the start marker (0xFFAA) in the raw data
-    const char* startMarker = strstr(rawData, "\xFF\xAA");
-    char testFrame[10] = {0};
-    for (i = 0; i< 10; i++)
-        testFrame[i] = *(startMarker + i);
-    if (startMarker != NULL) {
-        // Search for the end marker (0xAAFF) in the raw data
-        const char* endMarker = strstr(startMarker + 2, "\xDE\xCC");
-        if (endMarker != NULL) {
-            // Calculate the length of the frame
-            size_t frameLength = endMarker - startMarker + 4; // Include the markers
-
-            // Check if the frame length is within the maximum allowed size
-            if (frameLength <= MAX_FRAME_SIZE) {
-                // Copy the frame to the frame array
-                strncpy(frame, startMarker, frameLength);
-                frame[frameLength] = '\0';  // Ensure null-terminated string
-                return true;
-            } else {
-                // Handle the case where the frame size exceeds the maximum allowed size
-                // You may want to handle this differently based on your application
-                frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
-            }
-        } else {
-            // Handle the case where the end marker is not found
-            return false;
-            // You may want to handle this differently based on your application
-//            frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
-        }
-    } else {
-        // Handle the case where the start marker is not found
-        return false;
-        // You may want to handle this differently based on your application
-//        frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
-    }
-}
-
-void parse_frame(const uint8_t *data_stream, size_t stream_length) {
+// Function to parse the first frame in raw data
+bool parseFirstFrameInRawData(const uint8_t *data_stream, size_t stream_length) {
     size_t i;
     size_t frame_start = 0;
     size_t frame_end = 0;
@@ -358,11 +320,12 @@ void parse_frame(const uint8_t *data_stream, size_t stream_length) {
         // Extract the frame and store it in the global variable
         size_t frame_length = frame_end - frame_start;
         memcpy(receivedFrame, &data_stream[frame_start], frame_length);
-        receivedFrameL = frame_length;
-
+        receivedFrameLength = frame_length;
+        return true;
         // If there is more data after the frame, you can process it here
     } else {
         DBG("Incomplete frame received.\n");
+        return false;
     }
 }
 
@@ -370,6 +333,7 @@ void parse_frame(const uint8_t *data_stream, size_t stream_length) {
 void parseDataInFrame(char *frame, card *dataCard)
 {
     char functionalCode = frame[2];
+    int i;
 
     // Reset the card first, then parse it later
     initCard(dataCard);
@@ -389,9 +353,10 @@ void parseDataInFrame(char *frame, card *dataCard)
         case 'D':
             currentEvent = E_REMOVE;
             DBG("Remove code\n");
-            if (strlen(frame) >= 10) {
-                dataCard->id = *(uint32_t*)(frame + 6);
+            for (i = 3; i >= 0; i--){
+                idBytes[i] = (uint32_t)frame[i+3];
             }
+            dataCard->id = combineBytes(idBytes);
             break;
 
         case 'S':
@@ -425,6 +390,16 @@ void parseDataInFrame(char *frame, card *dataCard)
             DBG("Invalid functional code\n");
             break;
     }
+}
+
+uint32_t combineBytes(uint8_t bytes[4]) {
+    // Combine the bytes into a uint32_t value
+    uint32_t result = 0;
+    result |= ((uint32_t)bytes[0] << 24);
+    result |= ((uint32_t)bytes[1] << 16);
+    result |= ((uint32_t)bytes[2] << 8);
+    result |= bytes[3];
+    return result;
 }
 
 void sync1Card(card *syncCard)

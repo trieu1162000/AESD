@@ -30,7 +30,7 @@ void systemStateMachineUpdate(void)
                     DBG("State = PARSING\n");
                     break;
                 case E_FINISHED: // Polling to detect the card
-                    detectedFlag = bPollingAction();
+                    // detectedFlag = bPollingAction();
                     break;
                 default:
                     break;

@@ -13,9 +13,11 @@
 #define FRAME_END1   0xCC
 #define FRAME_END2   0xDD
 
-extern volatile uint8_t receivedFrameIndex;
+extern uint8_t receivedFrameIndex;
 extern volatile uint8_t isInFrame;
 extern uint8_t ISRReceiveFlag;
-extern volatile uint8_t rawReceivedFrame[MAX_FRAME_LENGTH];
+extern uint8_t rawReceivedFrame[MAX_FRAME_LENGTH];
+extern uint8_t mainFrame[MAX_FRAME_LENGTH];
+
 
 extern void UARTStringPut(uint32_t, const char*);
