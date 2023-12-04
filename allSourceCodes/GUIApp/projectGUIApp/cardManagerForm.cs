@@ -112,7 +112,7 @@ namespace projectGUIApp
                 // Show a waiting dialog
                 using (var progressDialog = new processingForm(this))
                 {
-                    progressDialog.ShowCentered();
+                    progressDialog.ShowCentered(this);
                     //progressDialog.StartPosition = FormStartPosition.CenterParent; // Set the dialog to be centered on the parent form
                     var waitTask = WaitForAddACKWithUUIDAsync();
                     //progressDialog.StartPosition = FormStartPosition.CenterParent; // Set the dialog to be centered on the parent form

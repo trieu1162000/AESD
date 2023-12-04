@@ -18,7 +18,9 @@ namespace projectGUIApp
         private byte[] waitACKFrame = { 0xFF, 0xAA, (byte)'O', 0xAA, 0xFF };
         private bool ackReceived = false;
         private byte[] mainFormRecievedFrame;
+        private const int TimeoutACKMilliseconds = 10000; // 10 seconds
         private ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
+        private processingForm progressDialog;
 
         public settingCOMForm comSettingsForm;
 
@@ -135,32 +137,66 @@ namespace projectGUIApp
         {
             if (serialPORT.IsOpen)
             {
-                // Send Request Frame
-                this.serialPORT.Write(sRequestFrame, 0, sRequestFrame.Length);
+                // Create a BackgroundWorker
+                var worker = new BackgroundWorker();
 
-                // Wait for the dataReceivedHandler to signal that it has completed
-                dataReceivedEvent.WaitOne();
-
-                ackReceived = CheckPattern(mainFormRecievedFrame, waitACKFrame);
-
-                // Reset the event for the next round
-                dataReceivedEvent.Reset();
-
-                // Check if ACK frame was received successfully
-                if (ackReceived)
+                // Event handler for the DoWork event
+                worker.DoWork += (s, args) =>
                 {
-                    // ACK received, open the cardManagerForm
-                    OpenCardManagerForm();
-                }
-                else
+                    // Send Request Frame
+                    this.serialPORT.Write(sRequestFrame, 0, sRequestFrame.Length);
+
+                    // Wait for the dataReceivedHandler to signal that it has completed
+                    args.Result = dataReceivedEvent.WaitOne(TimeoutACKMilliseconds);
+                };
+
+                // Event handler for the RunWorkerCompleted event
+                worker.RunWorkerCompleted += (s, args) =>
                 {
-                    // Timeout or error handling
-                    MessageBox.Show(this, "Error: ACK not received.", "Unknow Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                    //progressDialog = args.Result as processingForm;
+
+                    bool dataReceived = (bool)args.Result;
+
+                    if (dataReceived)
+                    {
+                        ackReceived = CheckPattern(mainFormRecievedFrame, waitACKFrame);
+
+                        // Reset the event for the next round
+                        dataReceivedEvent.Reset();
+                        progressDialog.Close();
+
+                        // Check if ACK frame was received successfully
+                        if (ackReceived)
+                        {
+                            // ACK received, open the cardManagerForm
+                            OpenCardManagerForm();
+                        }
+                        else
+                        {
+                            // ACK not received or error handling
+                            MessageBox.Show(this, "Error: ACK not received.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        progressDialog.Close();
+
+                        // Timeout or error handling
+                        MessageBox.Show(this, "Error: Timeout waiting for data.", "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
+                // Create and show the progress dialog
+                progressDialog = new processingForm(this);
+                progressDialog.ShowCentered(this);
+
+                // Start the background operation
+                worker.RunWorkerAsync(progressDialog);
             }
             else
+            {
                 MessageBox.Show(this, "Error: Serial port is not open.", "Connection", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+            }
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
