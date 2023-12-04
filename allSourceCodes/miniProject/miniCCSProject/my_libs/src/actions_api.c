@@ -14,6 +14,7 @@ unsigned char funnctionalCode = 0;
 uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
 char receivedFrame[MAX_FRAME_SIZE] = {0};
+size_t receivedFrameLength = 0;
 
 static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -295,7 +296,7 @@ bool parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
     memset(frame, 0, MAX_FRAME_SIZE);
 
     // Search for the start marker (0xFFAA) in the raw data
-    const char* startMarker = strstr(rawData, "\xAA\xBB");
+    const char* startMarker = strstr(rawData, "\xFF\xAA");
     char testFrame[10] = {0};
     for (i = 0; i< 10; i++)
         testFrame[i] = *(startMarker + i);
@@ -328,6 +329,40 @@ bool parseFirstFrameInRawData(char *rawData, char frame[MAX_FRAME_SIZE]) {
         return false;
         // You may want to handle this differently based on your application
 //        frame[0] = '\0';  // '\0' is often used to represent an invalid or null character
+    }
+}
+
+void parse_frame(const uint8_t *data_stream, size_t stream_length) {
+    size_t i;
+    size_t frame_start = 0;
+    size_t frame_end = 0;
+
+    // Find the start marker
+    for (i = 0; i < stream_length - 1; ++i) {
+        if ((data_stream[i] == 0xFF) && (data_stream[i + 1] == 0xAA)) {
+            frame_start = i;
+            break;
+        }
+    }
+
+    // Find the end marker
+    for (i = frame_start; i < stream_length - 1; ++i) {
+        if ((data_stream[i] == 0xAA) && (data_stream[i + 1] == 0xFF)) {
+            frame_end = i + 2;
+            break;
+        }
+    }
+
+    // Check if both markers were found
+    if (frame_start < frame_end) {
+        // Extract the frame and store it in the global variable
+        size_t frame_length = frame_end - frame_start;
+        memcpy(receivedFrame, &data_stream[frame_start], frame_length);
+        receivedFrameL = frame_length;
+
+        // If there is more data after the frame, you can process it here
+    } else {
+        DBG("Incomplete frame received.\n");
     }
 }
 

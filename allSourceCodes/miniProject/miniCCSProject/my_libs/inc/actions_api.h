@@ -30,6 +30,8 @@
 extern unsigned char str[MAX_LEN];
 extern unsigned char cardUUID[CARD_LENGTH];
 extern char receivedFrame[MAX_FRAME_SIZE];
+extern size_t receivedFrameLength;
+
 // This var is used for both
 extern char functionalCode;
 extern int8_t detectedFlag;
