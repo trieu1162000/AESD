@@ -53,6 +53,8 @@ static bool parseFirstFrameInRawData(const uint8_t *data_stream, size_t stream_l
 static void parseDataInFrame(char *frame, card *dataCard);
 
 // Actions for base system. These will be used
+extern void bStartTimeOut(void);
+extern void bNACKAction(void);
 extern int8_t bVerifyAction(void);
 extern int8_t bPollingAction(void);
 extern void bPassAction(void);

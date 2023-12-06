@@ -143,6 +143,8 @@ bool updateCardBaseOnUUID(cardQueue *queue, const uint32_t *uuid, const char *ne
             strncpy(queue->authorizedCards[i].name, newName, sizeof(queue->authorizedCards[i].name) - 1);
             queue->authorizedCards[i].name[sizeof(queue->authorizedCards[i].name) - 1] = '\0';  // Ensure null-terminated string
             queue->authorizedCards[i].id = newId;
+            DBG("Update succesfully\n");
+            printAllCards(queue);
             return true;  // Card updated successfully
         }
     }

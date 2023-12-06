@@ -50,6 +50,8 @@ namespace projectGUIApp
                 btnConnect.ForeColor = Color.Brown;
                 btnConnect.Image = new Bitmap(projectGUIApp.Properties.Resources.icon_disconnect);
                 btnReScan.Enabled = false;
+
+                // TODO: Disable other fields
                 try
                 {
                     serialPORT.PortName = cbbCOMPort.Text;
@@ -95,6 +97,7 @@ namespace projectGUIApp
                     mainForm.LogMessage(serialPORT.PortName.ToString() + " is disconnected", Color.Red);
 
                     //Display.UpdateComStatus("status", 0, serialPORT.PortName + " is closed", System.Drawing.Color.Red);
+                    // TODO: Enable other fields
                 }
             }
 
@@ -102,6 +105,15 @@ namespace projectGUIApp
         }
 
         private void btnReScan_Click(object sender, EventArgs e)
+        {
+            // fix multiple adding
+            cbbCOMPort.Items.Clear();
+
+            string[] ports = SerialPort.GetPortNames();
+            cbbCOMPort.Items.AddRange(ports);
+        }
+
+        private void cbbCOMPort_DropDown(object sender, EventArgs e)
         {
             // fix multiple adding
             cbbCOMPort.Items.Clear();

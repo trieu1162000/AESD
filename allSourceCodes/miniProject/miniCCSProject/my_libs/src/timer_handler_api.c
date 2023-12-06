@@ -7,16 +7,13 @@
 
 #include "../inc/timer_handler_api.h"
 
-bool warningTimerFlag = false;
-bool unlockedTimerFlag = false;
-
 void timerUIntHandler(void)
 {
     // Clear the timer interrupt
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-    // Raise the flag
-    unlockedTimerFlag = true;
+    // Raise the event
+    currentEvent = E_UNLOCKED;
 
 }
 
@@ -25,9 +22,17 @@ void timerWIntHandler(void)
     // Clear the timer interrupt
     TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
-    // Raise the flag
-    warningTimerFlag = true;
+    // Raise the event
+    currentEvent = E_FINISHED;
 
 }
 
+void timerAUIntHandler(void)
+{
+    // Clear the timer interrupt
+    TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
+
+    // Raise the event
+    currentEvent = E_AU_TIMEOUT;
+}
 

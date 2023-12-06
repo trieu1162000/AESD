@@ -15,7 +15,6 @@ void loadCardsFromEEPROM(cardQueue *queue) {
     uint32_t rawName[8];
     uint32_t rawID;
     uint32_t rawUUID[5];
-    char *parsedName;
 
     // Read data from EEPROM into a buffer
     uint32_t *pui32Read = (uint32_t *)malloc(sizeof(card) * MAX_CARDS);

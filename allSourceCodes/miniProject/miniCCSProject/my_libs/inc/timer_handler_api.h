@@ -9,8 +9,6 @@
 #define MY_LIBS_INC_TIMER_HANDLER_API_H_
 
 #include "config_peripherals_api.h"
-
-extern bool warningTimerFlag;
-extern bool unlockedTimerFlag;
+#include "events.h"
 
 #endif /* MY_LIBS_INC_TIMER_HANDLER_API_H_ */

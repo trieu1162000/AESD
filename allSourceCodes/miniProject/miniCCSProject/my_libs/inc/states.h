@@ -18,7 +18,7 @@ typedef enum {
     S_ADDING,
     S_REMOVING,
     S_UPDATING,
-    S_WRITING,
+    S_MODIFYING,
     S_MANAGING,
 } systemState_t;
 

@@ -17,9 +17,10 @@ namespace projectGUIApp
         private byte[] sRequestFrame = { 0xFF, 0xAA, (byte)'R', 0xAA, 0xFF };
         private byte[] waitACKFrame = { 0xFF, 0xAA, (byte)'O', 0xAA, 0xFF };
         private bool ackReceived = false;
-        private byte[] mainFormRecievedFrame;
+        public byte[] mainFormRecievedFrame;
+        public byte[] entireMainFormRecievedFrame;
         private const int TimeoutACKMilliseconds = 10000; // 10 seconds
-        private ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
+        public ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
         private processingForm progressDialog;
 
         public settingCOMForm comSettingsForm;
@@ -31,6 +32,8 @@ namespace projectGUIApp
         {
             InitializeComponent();
             serialPORT = new SerialPort();
+            entireMainFormRecievedFrame = new byte[0];
+
         }
 
         private void OpenCardManagerForm()
@@ -94,17 +97,17 @@ namespace projectGUIApp
                 int bytesToRead = serialPORT.BytesToRead;
                 mainFormRecievedFrame = new byte[bytesToRead];
                 int bytesRead = serialPORT.Read(mainFormRecievedFrame, 0, bytesToRead);
+                entireMainFormRecievedFrame = entireMainFormRecievedFrame.Concat(mainFormRecievedFrame).ToArray();
+                //for (int i = 0; i < entireMainFormRecievedFrame.Length; i++)
+                //{
+                //    Console.Write($"{entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
+                //}
 
-                for (int i = 0; i < bytesRead; i++)
-                {
-                    Console.Write($"{mainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
-                }
+                //Console.WriteLine();
+                //Console.WriteLine("====================");
 
-                Console.WriteLine();
                 dataReceivedEvent.Set();
-                // You can process the received data as needed
-                // For example, update UI elements or perform some action
-                //mainForm.HandleReceivedData(data);
+
             }
             catch (Exception ex)
             {
@@ -133,65 +136,70 @@ namespace projectGUIApp
 
         }
 
-        private void cardManagerToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void cardManagerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (serialPORT.IsOpen)
             {
-                // Create a BackgroundWorker
-                var worker = new BackgroundWorker();
+                dataReceivedEvent.Reset();
+                // Send Request Frame
+                this.serialPORT.Write(sRequestFrame, 0, sRequestFrame.Length);
 
-                // Event handler for the DoWork event
-                worker.DoWork += (s, args) =>
+                // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                Task<int> waitResult = Task.Run(() =>
                 {
-                    // Send Request Frame
-                    this.serialPORT.Write(sRequestFrame, 0, sRequestFrame.Length);
+                    // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                    int result = WaitHandle.WaitAny(new WaitHandle[] { dataReceivedEvent }, 8000);
+                    return result;
+                });
 
-                    // Wait for the dataReceivedHandler to signal that it has completed
-                    args.Result = dataReceivedEvent.WaitOne(TimeoutACKMilliseconds);
-                };
+                // Create and show a processing form
+                processingForm processingDialog = new processingForm(this);
+                processingDialog.ShowCentered(this);
 
-                // Event handler for the RunWorkerCompleted event
-                worker.RunWorkerCompleted += (s, args) =>
+                // Wait for either the dataReceivedEvent or the timeout
+                int waitResultIndex = await waitResult;
+
+                // Close the processing form
+                processingDialog.Close();
+
+                Console.WriteLine("====================");
+
+                for (int i = 0; i < entireMainFormRecievedFrame.Length; i++)
                 {
-                    //progressDialog = args.Result as processingForm;
+                    Console.Write($"{entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
+                }
 
-                    bool dataReceived = (bool)args.Result;
+                Console.WriteLine();
+                Console.WriteLine("====================");
+                Console.WriteLine("jump here");
+                //// Check if ACK frame was received successfully
+                //if (waitResultIndex == WaitHandle.WaitTimeout)
+                //{
+                //    MessageBox.Show(this, "Error: Timeout waiting for ACK.", "Timeout Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //}
+                //else
+                //{
+                ackReceived = CheckPattern(entireMainFormRecievedFrame, waitACKFrame);
 
-                    if (dataReceived)
+                    // Reset the event for the next round
+                    dataReceivedEvent.Reset();
+
+                    // Check if ACK frame was received successfully
+                    if (ackReceived)
                     {
-                        ackReceived = CheckPattern(mainFormRecievedFrame, waitACKFrame);
-
-                        // Reset the event for the next round
-                        dataReceivedEvent.Reset();
-                        progressDialog.Close();
-
-                        // Check if ACK frame was received successfully
-                        if (ackReceived)
-                        {
-                            // ACK received, open the cardManagerForm
-                            OpenCardManagerForm();
-                        }
-                        else
-                        {
-                            // ACK not received or error handling
-                            MessageBox.Show(this, "Error: ACK not received.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                        entireMainFormRecievedFrame = new byte[0];
+                        // ACK received, open the cardManagerForm
+                        OpenCardManagerForm();
                     }
                     else
                     {
-                        progressDialog.Close();
-
-                        // Timeout or error handling
-                        MessageBox.Show(this, "Error: Timeout waiting for data.", "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(this, "Error: ACK not received.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                };
 
-                // Create and show the progress dialog
-                progressDialog = new processingForm(this);
-                progressDialog.ShowCentered(this);
+                    // Reset the entire main frame
+                    this.entireMainFormRecievedFrame = new byte[0];
 
-                // Start the background operation
-                worker.RunWorkerAsync(progressDialog);
+                //}
             }
             else
             {
@@ -237,5 +245,12 @@ namespace projectGUIApp
 
             return false;
         }
+
+        public bool WaitForDataReceived(int timeoutMilliseconds)
+        {
+            // Wait for the event to be signaled or until the timeout expires
+            return dataReceivedEvent.WaitOne(timeoutMilliseconds);
+        }
+
     }
 }

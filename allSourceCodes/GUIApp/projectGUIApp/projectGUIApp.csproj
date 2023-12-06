@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>projectGUIApp</RootNamespace>
     <AssemblyName>projectGUIApp</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -52,6 +52,7 @@
     <Compile Include="cardManagerForm.Designer.cs">
       <DependentUpon>cardManagerForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="frameClass.cs" />
     <Compile Include="mainDashboard.cs">
       <SubType>Form</SubType>
     </Compile>

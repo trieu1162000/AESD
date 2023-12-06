@@ -30,7 +30,7 @@ void systemStateMachineUpdate(void)
                     DBG("State = PARSING\n");
                     break;
                 case E_FINISHED: // Polling to detect the card
-                    // detectedFlag = bPollingAction();
+                    detectedFlag = bPollingAction();
                     break;
                 default:
                     break;
@@ -97,17 +97,13 @@ void systemStateMachineUpdate(void)
 
         case S_PARSING:
             switch (currentEvent) {
-                case E_ISR_RECEIVE:
-                    currentEvent = E_GUI_FINISHED;
-                    currentState = S_STOPPED;
-                    DBG("State = STOPPED\n");
-                    break;
                 case E_SYNC:
                     bSyncAction(&cardQueueForEEPROM);
                     currentState = S_SYNCHRONIZING;
                     DBG("State = SYNCHRONIZING\n");
                     break;
                 case E_ADD:
+                    bStartTimeOut();
                     detectedFlag = bPollingAction();
                     currentState = S_ADDING;
                     DBG("State = ADDING\n");
@@ -122,7 +118,8 @@ void systemStateMachineUpdate(void)
                     DBG("State = REMOVING\n");
                     break;
                 case E_UPDATE:
-                    bUpdateAction(&cardNeedToDo);
+                    bStartTimeOut();
+                    detectedFlag = bPollingAction();
                     currentState = S_UPDATING;
                     DBG("State = UPDATING\n");
                     break;
@@ -171,17 +168,26 @@ void systemStateMachineUpdate(void)
 
         case S_ADDING:
             switch (currentEvent) {
+                case E_AU_TIMEOUT:
+                    bNACKAction();
+                    currentState = S_MANAGING;
+                    DBG("State = MAnNAGING\n");
+                    break;
+                case E_ADD:
+                    detectedFlag = bPollingAction();
+                    // DBG("State = ADDING\n");
+                    break;
                 case E_DETECTED:
                     bWriteAction();
-                    currentState = S_WRITING;
-                    DBG("State = WRITING\n");
+                    currentState = S_MODIFYING;
+                    DBG("State = MODIFYING\n");
                     break;
                 default:
                     break;
             }
             break;
 
-        case S_WRITING:
+        case S_MODIFYING:
             switch (currentEvent) {
                 case E_ISR_RECEIVE:
                     bReceiveAction();
@@ -207,10 +213,22 @@ void systemStateMachineUpdate(void)
 
         case S_UPDATING:
             switch (currentEvent) {
-                case E_ISR_RECEIVE:
-                    bReceiveAction();
-                    currentState = S_PARSING;
-                    DBG("State = PARSING\n");
+                case E_AU_TIMEOUT:
+                    bNACKAction();
+                    currentState = S_MANAGING;
+                    DBG("State = MAnNAGING\n");
+                    break;
+                case E_UPDATE:
+                    detectedFlag = bPollingAction();
+                    // DBG("State = ADDING\n");
+                    break;
+                case E_DETECTED:
+                    if(bUpdateAction(&cardNeedToDo))
+                        DBG("Update successfully\n");
+                    else
+                        DBG("Failed to update\n");
+                    currentState = S_MODIFYING;
+                    DBG("State = MODIFYING\n");
                     break;
                 default:
                     break;
@@ -241,22 +259,8 @@ void systemEventUpdate()
         detectedFlag = MI_NOTAGERR;
     }
 
-    // Check warning timer and raise a flag
-    if(warningTimerFlag)
-    {
-        currentEvent = E_FINISHED;
-        warningTimerFlag = false;
-    }
-
-    // Check unlocked timer and raise a flag
-    if(unlockedTimerFlag)
-    {
-        currentEvent = E_UNLOCKED;
-        unlockedTimerFlag = false;
-    }
-
     // Some data is received, the flag is already raised
-    if(ISRReceiveFlag == 1)
+    if(ISRReceiveFlag == 1 && strlen(mainFrame) > 0)
     {
         currentEvent = E_ISR_RECEIVE;
         ISRReceiveFlag = 0;

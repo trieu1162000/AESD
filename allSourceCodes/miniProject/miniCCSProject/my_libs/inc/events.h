@@ -13,15 +13,17 @@ typedef enum {
     E_DETECTED = 0,         // the card is detected, detectedFlag is raised
     E_AUTHORIZED,           // verifyFllag is changed
     E_DENIED,               // verifyFllag is changed
-    E_UNLOCKED,             // unlockedTimerFlag is raised
-    E_FINISHED,             // warningTimer is raised/ detectedFlag is not raised/
+    E_UNLOCKED,             // unlockedTimer is raised
+    E_FINISHED,             // warningTimer is raised
     E_ISR_RECEIVE,          // ISR UART RX is raised, some data is received
     E_SYNC,                 // after parsing, sync card event is raised
     E_ADD,                  // after parsing, add card event is raised
     E_UPDATE,               // after parsing, update card event is raised
     E_REMOVE,               // after parsing, remove card event is raised
-    E_GUI_FINISHED,                // after parsing, ACK for finishing is received from GUI
+    E_GUI_FINISHED,         // after parsing, ACK for finishing is received from GUI
     E_REQUEST,              // GUI send an initiate request to start exchange data with the system
+    E_AU_TIMEOUT,           // Timeout for adding/updating the card
+
 } systemEvents_t;
 
 extern systemEvents_t currentEvent;

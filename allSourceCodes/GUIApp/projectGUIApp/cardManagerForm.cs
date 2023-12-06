@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using System.IO.Ports;
+using System.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace projectGUIApp
 {
     public partial class cardManagerForm : Form
     {
+        private byte[] rSyncFrame;
         private byte[] sFinishFrame = { 0xFF, 0xAA, (byte)'F', 0xAA, 0xFF };
         private const int TimeoutMilliseconds = 5000; // Adjust the timeout as needed
         private SerialPort serialPORT;
@@ -47,25 +49,78 @@ namespace projectGUIApp
             }
         }
 
-        private string ConstructSendAddFrame(char functionalCode, string name, string id)
+        private byte[] constructSendAddFrame(char functionalCode, string name, string id)
         {
-            // Assuming the format is: 0xFFAA - Action - Name - ID - 0xAAFF
-            string sAddFrame = $"0xFFAA{functionalCode}{name}{id}0xAAFF";
-            return sAddFrame;
+            // Assuming functionalCode is a single character
+
+            // Convert functionalCode to byte
+            byte functionalCodeByte = (byte)functionalCode;
+
+            // Convert name, uuid, and id to byte arrays with fixed lengths
+            byte[] nameBytes = Encoding.ASCII.GetBytes(name.PadRight(32, '\0')).Take(32).ToArray();
+
+            // Convert id string to an integer
+            int idInt = int.Parse(id);
+
+            // Convert the integer id to 4 bytes
+            byte[] idBytes = BitConverter.GetBytes(idInt);
+
+            // Create a List<byte> to store the frame bytes
+            List<byte> frameBytes = new List<byte>();
+
+            // Add fixed header
+            frameBytes.AddRange(new byte[] {0xFF, 0xAA});
+
+            // Add functional code, uuid, name, and id
+            frameBytes.AddRange(new byte[] { functionalCodeByte });
+            frameBytes.AddRange(nameBytes);
+            frameBytes.AddRange(idBytes);
+
+            // Add fixed footer
+            frameBytes.AddRange(new byte[] {0xAA, 0xFF});
+
+            return frameBytes.ToArray();
+
         }
 
-        private string ConstructSendRemoveFrame(char functionalCode, string id)
+        private byte[] constructSendUpdateFrame(char functionalCode, string name, string uuid, string id)
         {
-            // Assuming the format is: 0xFFAA - Action - ID - 0xAAFF
-            string sRemoveFrame = $"0xFFAA{functionalCode}{id}0xAAFF";
-            return sRemoveFrame;
-        }
+            // Assuming functionalCode is a single character
 
-        private string constructSendUpdateFrame(char functionalCode, string name, string uuid, string id)
-        {
-            // Assuming the format is: 0xFFAA - Action - Name - ID - 0xAAFF
-            string sUpdateFrame = $"0xFFAA{functionalCode}{uuid}{name}{id}0xAAFF";
-            return sUpdateFrame;
+            // Convert functionalCode to byte
+            byte functionalCodeByte = (byte) functionalCode;
+
+            // Convert name, uuid, and id to byte arrays with fixed lengths
+            byte[] nameBytes = Encoding.ASCII.GetBytes(name.PadRight(32, '\0')).Take(32).ToArray();
+
+            // Convert uuid hex string to bytes
+            byte[] uuidBytes = Enumerable.Range(0, uuid.Length / 2)
+                                         .Select(i => Convert.ToByte(uuid.Substring(i * 2, 2), 16))
+                                         .ToArray();
+
+            // Convert id string to an integer
+            int idInt = int.Parse(id);
+
+            // Convert the integer id to 4 bytes
+            byte[] idBytes = BitConverter.GetBytes(idInt);
+
+            // Create a List<byte> to store the frame bytes
+            List<byte> frameBytes = new List<byte>();
+
+            // Add fixed header
+            frameBytes.AddRange(new byte[] {0xFF, 0xAA});
+
+            // Add functional code, uuid, name, and id
+            frameBytes.AddRange(new byte[] {functionalCodeByte});
+            frameBytes.AddRange(uuidBytes);
+            frameBytes.AddRange(nameBytes);
+            frameBytes.AddRange(idBytes);
+
+            // Add fixed footer
+            frameBytes.AddRange(new byte[] {0xAA, 0xFF});
+
+            return frameBytes.ToArray();
+
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -98,49 +153,47 @@ namespace projectGUIApp
                 }
 
                 // Construct sFrame and communicate with MCU (similar to previous code)
-                string sAddFrame = ConstructSendAddFrame('A', name, id);
-                //mainForm.serialPORT.Write(sRequestFrame);
+                byte[] sAddFrame = constructSendAddFrame('A', name, id);
+                mainForm.serialPORT.Write(sAddFrame, 0, sAddFrame.Length);
 
                 if (listViewCard.Items.Count == 10)
                 {
                     MessageBox.Show("Cannot add more than 10 rows.");
                     return;
                 }
-                //ListViewItem newItem2 = new ListViewItem(new[] { "23333", name, id });
-                //listViewCard.Items.Add(newItem2);
 
-                // Show a waiting dialog
-                using (var progressDialog = new processingForm(this))
+
+                // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                Task<int> waitResult = Task.Run(() =>
                 {
-                    progressDialog.ShowCentered(this);
-                    //progressDialog.StartPosition = FormStartPosition.CenterParent; // Set the dialog to be centered on the parent form
-                    var waitTask = WaitForAddACKWithUUIDAsync();
-                    //progressDialog.StartPosition = FormStartPosition.CenterParent; // Set the dialog to be centered on the parent form
+                    // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                    int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
+                    return result;
+                });
 
+                // Create and show a processing form
+                processingForm processingDialog = new processingForm(this);
+                processingDialog.ShowCentered(this);
 
-                    // Show the dialog and wait for the task to complete
-                    if (await Task.WhenAny(waitTask, Task.Delay(TimeoutMilliseconds)) == waitTask)
-                    {
-                        // Task completed within the timeout
-                        string uuid = waitTask.Result;
+                // Wait for either the dataReceivedEvent or the timeout
+                await waitResult;
 
-                        // Close the waiting dialog
-                        progressDialog.Close();
-
-                        // Process the response and update the UI
-                        ListViewItem newItem = new ListViewItem(new[] {uuid, name, id });
-                        listViewCard.Items.Add(newItem);
-                        //mainForm.serialPORT.Write(sAddFrame);
-                        MessageBox.Show(this, "Add Card Successfully.", "Add Card", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    }
-                    else
-                    {
-                        // Timeout occurred
-                        progressDialog.Close();
-                        MessageBox.Show(this, "Action timed out. Please try again.", "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                // Close the processing form
+                processingDialog.Close();
+                for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
+                {
+                    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
                 }
+
+                Console.WriteLine();
+                Console.WriteLine("====================");
+
+                mainForm.dataReceivedEvent.Reset();
+                AddAddDataToListView("23456", name, id);
+                //AddAddDataToListView(AddParseRawStream(mainForm.entireMainFormRecievedFrame), name, id);
+                MessageBox.Show("Add successfully.");
+                mainForm.entireMainFormRecievedFrame = new byte[0];
+
             }
             catch (Exception ex)
             {
@@ -152,34 +205,31 @@ namespace projectGUIApp
         {
 
             // Retrieve user input directly from the TextBoxes
-            //string selectedID = cbbRemoveID.SelectedItem?.ToString();
+            string selectedID = cbbRemoveID.SelectedItem?.ToString();
 
-            //if (string.IsNullOrEmpty(selectedID))
-            //{
-            //    MessageBox.Show("Invalid ID to remove.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //    return;
-            //}
+            if (string.IsNullOrEmpty(selectedID))
+            {
+                MessageBox.Show("Invalid ID to remove.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             ListViewItem itemToRemove = null;
 
-            //foreach (ListViewItem item in listViewCard.Items)
-            //{
-            //    if (item.SubItems[2].Text == selectedID)
-            //    {
-            //        itemToRemove = item;
-            //        break;
-            //    }
-            //}
-
-            //if (itemToRemove != null)
-            if (itemToRemove == null)
+            foreach (ListViewItem item in listViewCard.Items)
+            {
+                if (item.SubItems[2].Text == selectedID)
                 {
-                //listViewCard.Items.Remove(itemToRemove);
-                // Construct sFrame and communicate with MCU (similar to previous code)
-                string testID = "2370014";
+                    itemToRemove = item;
+                    break;
+                }
+            }
+
+            if (itemToRemove != null)
+            {
+                listViewCard.Items.Remove(itemToRemove);
 
                 // Convert the string to an unsigned integer
-                uint idValue = uint.Parse(testID);
+                uint idValue = uint.Parse(selectedID);
 
                 // Convert the unsigned integer to a byte array
                 byte[] idBytes = BitConverter.GetBytes(idValue);
@@ -262,8 +312,8 @@ namespace projectGUIApp
             {
                 itemToUpdate.SubItems[1].Text = newName;
                 itemToUpdate.SubItems[2].Text = newID;
-                string sUpdateFrame = constructSendUpdateFrame('U', newName, selectedUUID, newID);
-                //mainForm.serialPORT.Write(sUpdateFrame);
+                byte[] sUpdateFrame = constructSendUpdateFrame('U', newName, selectedUUID, newID);
+                mainForm.serialPORT.Write(sUpdateFrame, 0, sUpdateFrame.Length);
                 MessageBox.Show("Item updated successfully.");
             }
             else
@@ -272,53 +322,50 @@ namespace projectGUIApp
             }
         }
 
-        private void btnSyncCard_Click(object sender, EventArgs e)
+        private async void btnSyncCard_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private Task<string> WaitForAddACKWithUUIDAsync()
-        {
-            var tcs = new TaskCompletionSource<string>();
-
-            // Subscribe to DataReceived event to listen for incoming data
-            SerialDataReceivedEventHandler dataReceivedHandler = null;
-            dataReceivedHandler = (sender, e) =>
+            // Construct the sRemoveFrame byte array
+            byte[] sSyncFrame = new byte[]
             {
-                try
-                {
-                    string response = mainForm.serialPORT.ReadLine();
-
-                    // Check if the received data is the expected ACK with UUID
-                    if (response.StartsWith("0xFFAA") && response.EndsWith("0xAAFF"))
-                    {
-                        // Extract UUID from the response
-                        string uuid = response.Substring(7, response.Length - 13);
-
-                        // Set the result of the task
-                        tcs.SetResult(uuid);
-                    }
-                    else
-                    {
-                        // Handle unexpected responses or errors
-                        tcs.SetException(new Exception("Unexpected response from MCU."));
-                    }
-
-                    // Unsubscribe from the event to avoid further processing
-                    mainForm.serialPORT.DataReceived -= dataReceivedHandler;
-                }
-                catch (Exception ex)
-                {
-                    // Set the exception if an error occurs
-                    tcs.SetException(ex);
-                }
+                    0xFF, 0xAA, // Start of frame
+                    (byte)'S',   // 'S' stands for synchronize
+                    0xAA, 0xFF     // End of frame
             };
+            mainForm.dataReceivedEvent.Reset();
+            this.serialPORT.Write(sSyncFrame, 0, sSyncFrame.Length);
+            //mainForm.dataReceivedEvent.WaitOne();
+            //Console.WriteLine("Jump here");
 
-            // Subscribe to DataReceived event
-            mainForm.serialPORT.DataReceived += dataReceivedHandler;
+            // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+            Task<int> waitResult = Task.Run(() =>
+            {
+                // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
+                return result;
+            });
 
-            // Return the task that will be completed when the ACK with UUID is received
-            return tcs.Task;
+            // Create and show a processing form
+            processingForm processingDialog = new processingForm(this);
+            processingDialog.ShowCentered(this);
+
+            // Wait for either the dataReceivedEvent or the timeout
+            await waitResult;
+
+            // Close the processing form
+            processingDialog.Close();
+            //{
+            //    //Console.WriteLine("Jump here");
+            //    mainForm.dataReceivedEvent.Reset();
+            //}
+            //System.Threading.Thread.Sleep(5000);
+            mainForm.dataReceivedEvent.Reset();
+
+            SyncAddDataToListView(SyncParseRawStream(mainForm.entireMainFormRecievedFrame));
+            MessageBox.Show("Synchronize successfully.");
+            mainForm.entireMainFormRecievedFrame = new byte[0];
+            //mainForm.dataReceivedEvent.Reset();
+
+
         }
 
         private void cbbUpdateUUID_DropDown(object sender, EventArgs e)
@@ -334,8 +381,105 @@ namespace projectGUIApp
         private void cardManagerForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Send Finished Frame
-            //mainForm.serialPORT.Write(sFinishFrame, 0, sFinishFrame.Length);
+            mainForm.serialPORT.Write(sFinishFrame, 0, sFinishFrame.Length);
 
         }
+
+        public List<frameClass> SyncParseRawStream(byte[] rawStream)
+        {
+            List<frameClass> frames = new List<frameClass>();
+            int frameSize = 46; // Size of each frame in bytes
+            byte[] headerMarker = { 0xFF, 0xAA };
+            byte functionalCode = (byte)'S';
+            byte[] eofMarker = { 0xAA, 0xFF };
+
+            for (int i = 0; i < rawStream.Length - frameSize + 1; i++)
+            {
+                if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
+                    rawStream[i + 2] == functionalCode)
+                {
+                    int frameEndIndex = i + frameSize; // Add 4 for the length of the EOF marker
+                    if (frameEndIndex <= rawStream.Length &&
+                        rawStream[frameEndIndex - 2] == eofMarker[0] && rawStream[frameEndIndex - 1] == eofMarker[1])
+                    {
+                        byte[] frameBytes = new byte[frameSize];
+                        Array.Copy(rawStream, i, frameBytes, 0, frameSize);
+                        frameClass frame = ParseFrame(frameBytes);
+                        frames.Add(frame);
+                        i = frameEndIndex - 1; // Move to the next potential frame
+                    }
+                }
+            }
+
+            return frames;
+        }
+
+        public string AddParseRawStream(byte[] rawStream)
+        {
+            int frameSize = 10; // Size of each frame in bytes
+            byte[] headerMarker = { 0xFF, 0xAA };
+            byte functionalCode = (byte)'A';
+            byte[] eofMarker = { 0xAA, 0xFF };
+            byte[] uuidBytes = new byte[5];
+            string uuidString = string.Empty;
+
+            for (int i = 0; i < rawStream.Length; i++)
+            { 
+                if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
+                    rawStream[i + 2] == functionalCode)
+                {
+                    int frameEndIndex = i + frameSize - 1;
+                    if (frameEndIndex < rawStream.Length &&
+                        rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
+                    {
+                        Array.Copy(rawStream, i+3, uuidBytes, 0, 5);
+                        uuidString = BitConverter.ToString(uuidBytes).Replace("-", ""); // Extract UUID
+                    }
+                }
+            }
+
+            return uuidString;
+        }
+
+        private frameClass ParseFrame(byte[] frameBytes)
+        {
+            frameClass frame = new frameClass();
+
+            byte[] uuidBytes = new byte[5];
+            Array.Copy(frameBytes, 39, uuidBytes, 0, 5);
+            frame.UUID = BitConverter.ToString(uuidBytes).Replace("-", ""); // Extract UUID
+
+            byte[] nameBytes = new byte[32];
+            Array.Copy(frameBytes, 7, nameBytes, 0, 32); // Adjust the starting index for the name
+            frame.Name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0'); // Extract and convert Name from ASCII bytes
+
+            byte[] idBytes = new byte[4];
+            Array.Copy(frameBytes, 3, idBytes, 0, 4); // Adjust the starting index for the ID
+            frame.ID = BitConverter.ToInt32(idBytes, 0); // Convert ID from bytes to int
+
+            return frame;
+        }
+
+        private void SyncAddDataToListView(List<frameClass> frames)
+        {
+            listViewCard.Items.Clear();
+
+            foreach (var frame in frames)
+            {
+                ListViewItem item = new ListViewItem(frame.UUID);
+                item.SubItems.Add(frame.Name);
+                item.SubItems.Add(frame.ID.ToString());
+                listViewCard.Items.Add(item);
+            }
+        }
+
+        private void AddAddDataToListView(string uuid, string name, string id)
+        {
+            ListViewItem item = new ListViewItem(uuid);
+            item.SubItems.Add(name);
+            item.SubItems.Add(id);
+            listViewCard.Items.Add(item);
+        }
+
     }
 }

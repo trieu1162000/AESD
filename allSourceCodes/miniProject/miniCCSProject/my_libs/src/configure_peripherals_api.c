@@ -61,6 +61,7 @@ void initPeriphs(void){
     // Enable for INT TIMER
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
 
     // Enable processor interrupts
     IntMasterEnable();
@@ -94,6 +95,11 @@ void initTimer(void)
     TimerLoadSet(TIMER0_BASE, TIMER_A, 5*SysCtlClockGet()-1);
     IntEnable(INT_TIMER0A);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+    TimerConfigure(TIMER2_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER2_BASE, TIMER_A, 4*SysCtlClockGet()-1);
+    IntEnable(INT_TIMER2A);
+    TimerIntEnable(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
 }
 
 // Init the I2C used for LCD

@@ -250,6 +250,7 @@ namespace projectGUIApp
             this.cbbCOMPort.Name = "cbbCOMPort";
             this.cbbCOMPort.Size = new System.Drawing.Size(70, 25);
             this.cbbCOMPort.TabIndex = 15;
+            this.cbbCOMPort.DropDown += new System.EventHandler(this.cbbCOMPort_DropDown);
             // 
             // label5
             // 

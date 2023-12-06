@@ -122,8 +122,8 @@ void bReceiveAction(void)
     size_t rawDataLength  = 0;
 
     DBG("Received Frame: ");
-    for(i = 0; i<10; i++)
-        UARTprintf("%x ", rawReceivedFrame[i]);
+    for(i = 0; i<MAX_FRAME_LENGTH; i++)
+        UARTprintf("%x ", mainFrame[i]);
     DBG("\n");
 
     rawDataLength = sizeof(mainFrame) / sizeof(mainFrame[0]);    // Get the data into the frame from the raw data
@@ -133,7 +133,6 @@ void bReceiveAction(void)
         // Parsing the data in receive frame into the card
         parseDataInFrame(receivedFrame, &cardNeedToDo);
     }
-    DBG("Failed to parse\n");
 
     // Need to reset the frame before receiving again
     memset(rawReceivedFrame, 0, MAX_FRAME_LENGTH);
@@ -162,6 +161,10 @@ void bWriteAction(void)
 {
     int i;
 
+    // We need to disable the timeout if a card already been detected
+    TimerDisable(TIMER2_BASE, TIMER_A);
+
+
     for (i = 0; i < CARD_LENGTH; i++)
         cardNeedToDo.uuid[i] = (uint32_t) cardUUID[i];
     // Write for existing card
@@ -182,6 +185,13 @@ bool bRemoveAction(uint32_t id)
 
 bool bUpdateAction(card *updateCard)
 {
+    // We need to disable the timeout if a card already been detected
+    TimerDisable(TIMER2_BASE, TIMER_A);
+
+    // Write for existing card
+    writeName((uint8_t *) updateCard->name);
+    writeID(updateCard->id);
+
     return updateCardBaseOnUUID(&cardQueueForEEPROM, updateCard->uuid, updateCard->name, updateCard->id);
 }
 
@@ -221,6 +231,28 @@ void bACKAdded(void)
     // End of Frame
     UARTCharPut(UART1_BASE, 0xAA);
     UARTCharPut(UART1_BASE, 0xFF);
+}
+
+void bNACKAction(void)
+{
+    // After adding, the card is not scanned
+    // Frame: 0xFFAA - 'N' - - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'N' for indicating the NACK
+    UARTCharPut(UART1_BASE, 'N');
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+}
+
+void bStartTimeOut(void)
+{
+    TimerDisable(TIMER2_BASE, TIMER_A);
+    TimerEnable(TIMER2_BASE, TIMER_A);
 }
 
 // Static functions
@@ -343,11 +375,11 @@ void parseDataInFrame(char *frame, card *dataCard)
         case 'A':
             currentEvent = E_ADD;
             DBG("Add code\n");
-            if (strlen(frame) >= 42) {
-                strncpy(dataCard->name, frame + 6, 32);
-                dataCard->name[31] = '\0';  // Ensure null-terminated string
-                dataCard->id = *(uint32_t*)(frame + 38);
+            strncpy(dataCard->name, frame + 3, 32);
+            for (i = 0; i < 4; i++){
+                idBytes[i] = (uint32_t)frame[38-i];
             }
+            dataCard->id = combineBytes(idBytes);
             break;
 
         case 'D':
@@ -357,6 +389,7 @@ void parseDataInFrame(char *frame, card *dataCard)
                 idBytes[i] = (uint32_t)frame[i+3];
             }
             dataCard->id = combineBytes(idBytes);
+            DBG("Remove ID: %d\n", dataCard->id);
             break;
 
         case 'S':
@@ -377,11 +410,13 @@ void parseDataInFrame(char *frame, card *dataCard)
 
         case 'U':
             currentEvent = E_UPDATE;
-            if (strlen(frame) >= 46) {
-                strncpy(dataCard->name, frame + 6, 32);
-                dataCard->name[31] = '\0';  // Ensure null-terminated string
-                dataCard->id = *(uint32_t*)(frame + 38);
-                memcpy(dataCard->uuid, frame + 42, sizeof(dataCard->uuid));
+            strncpy(dataCard->name, frame + 8, 32);
+            for (i = 0; i < 4; i++){
+                idBytes[i] = (uint32_t)frame[43-i];
+            }
+            dataCard->id = combineBytes(idBytes);
+            for (i = 0; i < 5; i++){
+                dataCard->uuid[i] = (uint32_t)frame[i+3];
             }
             break;
         default:

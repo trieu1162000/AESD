@@ -73,8 +73,6 @@ int main(void) {
     //======================================================================================
     // Initialize the card queue
     initCardQueue(&cardQueueForEEPROM);
-    uint32_t newCardUUID[] = {0x25, 0xbd, 0x9d, 0x2d, 0x28};
-    bool result = false;
     // enqueueCard(&myCardQueue, "Huynh Pham Nhat Trieu", 2370014, authorizedTestCardIDs[0]);
     // enqueueCard(&myCardQueue, "Huynh Pham Nhat", 2370015, authorizedTestCardIDs[1]);
     // enqueueCard(&myCardQueue, "Huynh Pham Trieu", 2370016, authorizedTestCardIDs[2]);
