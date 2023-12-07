@@ -51,6 +51,7 @@ static int8_t writeID(uint8_t id);
 static int8_t writeName(uint8_t *name);
 static bool parseFirstFrameInRawData(const uint8_t *data_stream, size_t stream_length);
 static void parseDataInFrame(char *frame, card *dataCard);
+static void sendLength(uint16_t length);
 
 // Actions for base system. These will be used
 extern void bStartTimeOut(void);

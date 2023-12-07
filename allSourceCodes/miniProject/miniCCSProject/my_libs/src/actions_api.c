@@ -145,10 +145,13 @@ void bSyncAction(cardQueue *queue)
 {
     // Sync the database from Tiva C to the GUI
     int i;
+
     if (queue->numCards == 0) {
         DBG("No cards in the queue.\n");
         return;
     }
+
+    sendLength(queue->numCards * 46);
 
     for (i = 0; i < queue->numCards; i++) {
         sync1Card(&queue->authorizedCards[i]);
@@ -243,6 +246,29 @@ void bNACKAction(void)
 
     // Identifier 'N' for indicating the NACK
     UARTCharPut(UART1_BASE, 'N');
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+}
+
+// Function to send Length of data when synchronizing
+void sendLength(uint16_t length)
+{
+    int i;
+    // Frame: 0xFFAA - 'L' - length (2 bytes) - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'L' for Length to send back to the GUI
+    UARTCharPut(UART1_BASE, 'L');
+
+    // Send length of frame
+    uint8_t* lengthBytes = (uint8_t*)&length;
+    for (i = 0; i < sizeof(length); i++) {
+        UARTCharPut(UART1_BASE, *(lengthBytes + i));
+    }
 
     // End of Frame
     UARTCharPut(UART1_BASE, 0xAA);
