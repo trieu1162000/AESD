@@ -21,10 +21,9 @@ namespace projectGUIApp
         public byte[] entireMainFormRecievedFrame;
         private const int TimeoutACKMilliseconds = 10000; // 10 seconds
         public ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
-        private processingForm progressDialog;
 
         public settingCOMForm comSettingsForm;
-
+        public reportForm reportDataForm;
         public cardManagerForm manageCardForm;
 
         public SerialPort serialPORT { get; }
@@ -128,7 +127,27 @@ namespace projectGUIApp
 
         private void reportToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (reportDataForm == null || reportDataForm.IsDisposed)
+            {
+                // Create a new instance if the form is not yet created or has been disposed
+                reportDataForm = new reportForm();
+            }
 
+            // Show the form as a dialog
+            reportDataForm.ShowDialog();
+
+            // Check if the form is disposed (closed by the user)
+            if (reportDataForm.IsDisposed)
+            {
+                // Optionally set the form variable to null if you want to recreate it next time
+                reportDataForm = null;
+
+                // Perform any other actions after the form is closed
+            }
+            else
+            {
+                // The form is still open, and you can continue using it
+            }
         }
 
         private void dataManagerToolStripMenuItem_Click(object sender, EventArgs e)
@@ -197,9 +216,8 @@ namespace projectGUIApp
                     }
 
                     // Reset the entire main frame
-                    this.entireMainFormRecievedFrame = new byte[0];
+                    entireMainFormRecievedFrame = new byte[0];
 
-                //}
             }
             else
             {

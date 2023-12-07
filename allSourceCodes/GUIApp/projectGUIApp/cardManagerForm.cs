@@ -16,9 +16,12 @@ namespace projectGUIApp
 {
     public partial class cardManagerForm : Form
     {
-        private byte[] rSyncFrame;
         private byte[] sFinishFrame = { 0xFF, 0xAA, (byte)'F', 0xAA, 0xFF };
         private const int TimeoutMilliseconds = 5000; // Adjust the timeout as needed
+        private const int syncTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
+        private const int addTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
+        private const int updateTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
+
         private SerialPort serialPORT;
         private mainDashboard mainForm;
         public cardManagerForm(mainDashboard mainForm)
@@ -133,6 +136,7 @@ namespace projectGUIApp
             try
             {
                 // Retrieve user input directly from the TextBoxes
+                bool addFlagTimeout = false;
                 string name = txtBoxAddName.Text;
                 string id = txtBoxAddID.Text;
 
@@ -152,46 +156,79 @@ namespace projectGUIApp
                     return; // or throw an exception or handle it according to your application's logic
                 }
 
-                // Construct sFrame and communicate with MCU (similar to previous code)
-                byte[] sAddFrame = constructSendAddFrame('A', name, id);
-                mainForm.serialPORT.Write(sAddFrame, 0, sAddFrame.Length);
-
                 if (listViewCard.Items.Count == 10)
                 {
                     MessageBox.Show("Cannot add more than 10 rows.");
                     return;
                 }
 
-
-                // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
-                Task<int> waitResult = Task.Run(() =>
-                {
-                    // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
-                    int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
-                    return result;
-                });
+                // Construct sFrame and communicate with MCU (similar to previous code)
+                byte[] sAddFrame = constructSendAddFrame('A', name, id);
+                mainForm.serialPORT.Write(sAddFrame, 0, sAddFrame.Length);
 
                 // Create and show a processing form
                 processingForm processingDialog = new processingForm(this);
                 processingDialog.ShowCentered(this);
 
-                // Wait for either the dataReceivedEvent or the timeout
-                await waitResult;
+                // Record the start time
+                DateTime startTime = DateTime.Now;
+                do
+                {
+                    // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                    Task<int> waitResult = Task.Run(() =>
+                    {
+                        // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                        int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
+                        return result;
+                    });
 
+                    // Wait for either the dataReceivedEvent or the timeout
+                    await waitResult;
+
+                    //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                    mainForm.dataReceivedEvent.Reset();
+
+                    // Calculate elapsed time
+                    TimeSpan elapsedTime = DateTime.Now - startTime;
+
+                    // Check if elapsed time exceeds the timeout
+                    if (elapsedTime.TotalMilliseconds > addTimeoutMilliseconds)
+                    {
+                        addFlagTimeout = true;
+                        // Break out of the loop if the timeout is exceeded
+                        break;
+                    }
+
+                } while (mainForm.entireMainFormRecievedFrame.Length == 0);
                 // Close the processing form
                 processingDialog.Close();
-                for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
-                {
-                    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
-                }
-
-                Console.WriteLine();
-                Console.WriteLine("====================");
 
                 mainForm.dataReceivedEvent.Reset();
-                AddAddDataToListView("23456", name, id);
-                //AddAddDataToListView(AddParseRawStream(mainForm.entireMainFormRecievedFrame), name, id);
-                MessageBox.Show("Add successfully.");
+
+                //for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
+                //{
+                //    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
+                //}
+
+                //Console.WriteLine();
+                //Console.WriteLine("====================");
+                if (addFlagTimeout)
+                {
+                    MessageBox.Show(this, "Error: Timeout, failed to add card. Please try again.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    // Check NACK first
+                    if (!CheckNACK(mainForm.entireMainFormRecievedFrame))
+                    {
+                        AddAddDataToListView("23456", name, id);
+                        //AddAddDataToListView(AddParseRawStream(mainForm.entireMainFormRecievedFrame), name, id);
+                        MessageBox.Show("Add successfully.");
+                    }
+                    else
+                        MessageBox.Show(this, "Error: Failed to add card. Please try again.", "Card is not detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
                 mainForm.entireMainFormRecievedFrame = new byte[0];
 
             }
@@ -267,8 +304,9 @@ namespace projectGUIApp
             }
         }
 
-        private void btnUpdate_Click(object sender, EventArgs e)
+        private async void btnUpdate_Click(object sender, EventArgs e)
         {
+            bool updateFlagTimeout = false;
             // Assuming comboBoxUpdateUUID, textBoxNewName, textBoxNewID are the names of your ComboBox and TextBox controls for Update operation
             string selectedUUID = cbbUpdateUUID.SelectedItem?.ToString();
             string newName = txtBoxUpdateName.Text;
@@ -310,11 +348,73 @@ namespace projectGUIApp
 
             if (itemToUpdate != null)
             {
-                itemToUpdate.SubItems[1].Text = newName;
-                itemToUpdate.SubItems[2].Text = newID;
                 byte[] sUpdateFrame = constructSendUpdateFrame('U', newName, selectedUUID, newID);
                 mainForm.serialPORT.Write(sUpdateFrame, 0, sUpdateFrame.Length);
-                MessageBox.Show("Item updated successfully.");
+                // Create and show a processing form
+                processingForm processingDialog = new processingForm(this);
+                processingDialog.ShowCentered(this);
+
+                // Record the start time
+                DateTime startTime = DateTime.Now;
+                do
+                {
+                    // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                    Task<int> waitResult = Task.Run(() =>
+                    {
+                        // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                        int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
+                        return result;
+                    });
+
+                    // Wait for either the dataReceivedEvent or the timeout
+                    await waitResult;
+
+                    //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                    mainForm.dataReceivedEvent.Reset();
+
+                    // Calculate elapsed time
+                    TimeSpan elapsedTime = DateTime.Now - startTime;
+
+                    // Check if elapsed time exceeds the timeout
+                    if (elapsedTime.TotalMilliseconds > updateTimeoutMilliseconds)
+                    {
+                        updateFlagTimeout = true;
+                        // Break out of the loop if the timeout is exceeded
+                        break;
+                    }
+
+                } while (mainForm.entireMainFormRecievedFrame.Length == 0);
+                // Close the processing form
+                processingDialog.Close();
+
+                mainForm.dataReceivedEvent.Reset();
+
+                //for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
+                //{
+                //    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
+                //}
+
+                //Console.WriteLine();
+                //Console.WriteLine("====================");
+                if (updateFlagTimeout)
+                {
+                    MessageBox.Show(this, "Error: Timeout, failed to update card. Please try again.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    // Check NACK first
+                    if (!CheckNACK(mainForm.entireMainFormRecievedFrame))
+                    {
+                        itemToUpdate.SubItems[1].Text = newName;
+                        itemToUpdate.SubItems[2].Text = newID;
+                        MessageBox.Show("Card is updated successfully.");
+                    }
+                    else
+                        MessageBox.Show(this, "Error: Failed to update card. Please try again.", "Card is not detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+
+                mainForm.entireMainFormRecievedFrame = new byte[0];
             }
             else
             {
@@ -324,6 +424,8 @@ namespace projectGUIApp
 
         private async void btnSyncCard_Click(object sender, EventArgs e)
         {
+            bool syncFlagTimeout = false;
+            uint length = 200;
             // Construct the sRemoveFrame byte array
             byte[] sSyncFrame = new byte[]
             {
@@ -336,35 +438,55 @@ namespace projectGUIApp
             //mainForm.dataReceivedEvent.WaitOne();
             //Console.WriteLine("Jump here");
 
-            // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
-            Task<int> waitResult = Task.Run(() =>
-            {
-                // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
-                int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
-                return result;
-            });
-
             // Create and show a processing form
             processingForm processingDialog = new processingForm(this);
             processingDialog.ShowCentered(this);
 
-            // Wait for either the dataReceivedEvent or the timeout
-            await waitResult;
+            // Record the start time
+            DateTime startTime = DateTime.Now;
+            do
+            {
+                // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                Task<int> waitResult = Task.Run(() =>
+                {
+                    // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                    int result = WaitHandle.WaitAny(new WaitHandle[] { mainForm.dataReceivedEvent }, 5000);
+                    return result;
+                });
 
+                // Wait for either the dataReceivedEvent or the timeout
+                await waitResult;
+
+                //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                mainForm.dataReceivedEvent.Reset();
+
+                // Calculate elapsed time
+                TimeSpan elapsedTime = DateTime.Now - startTime;
+
+                // Check if elapsed time exceeds the timeout
+                if (elapsedTime.TotalMilliseconds > syncTimeoutMilliseconds)
+                {
+                    syncFlagTimeout = true;
+                    // Break out of the loop if the timeout is exceeded
+                    break;
+                }
+
+            } while (mainForm.entireMainFormRecievedFrame.Length == 0 || mainForm.entireMainFormRecievedFrame.Length < length);
             // Close the processing form
             processingDialog.Close();
-            //{
-            //    //Console.WriteLine("Jump here");
-            //    mainForm.dataReceivedEvent.Reset();
-            //}
-            //System.Threading.Thread.Sleep(5000);
             mainForm.dataReceivedEvent.Reset();
 
-            SyncAddDataToListView(SyncParseRawStream(mainForm.entireMainFormRecievedFrame));
-            MessageBox.Show("Synchronize successfully.");
-            mainForm.entireMainFormRecievedFrame = new byte[0];
-            //mainForm.dataReceivedEvent.Reset();
+            if (syncFlagTimeout)
+            {
+                MessageBox.Show(this, "Error: Timeout, failed to Sync all cards.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                SyncAddDataToListView(SyncParseRawStream(mainForm.entireMainFormRecievedFrame));
+                MessageBox.Show("Synchronize successfully.");
+            }
 
+            mainForm.entireMainFormRecievedFrame = new byte[0];
 
         }
 
@@ -412,6 +534,41 @@ namespace projectGUIApp
             }
 
             return frames;
+        }
+
+        public uint ParseLengthRawStream(byte[] rawStream)
+        {
+            int frameSize = 7; // Size of each frame in bytes
+            byte[] headerMarker = { 0xFF, 0xAA };
+            byte functionalCode = (byte)'L';
+            byte[] eofMarker = { 0xAA, 0xFF };
+            byte[] lengthBytes = new byte[2];
+            uint length;
+
+            if (rawStream.Length < 7)
+                return 0;
+
+            for (int i = 0; i < rawStream.Length; i++)
+            {
+                if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
+                    rawStream[i + 2] == functionalCode)
+                {
+                    int frameEndIndex = i + frameSize - 1;
+                    if (frameEndIndex < rawStream.Length &&
+                        rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
+                    {
+                        Array.Copy(rawStream, i + 3, lengthBytes, 0, 2);
+                        length = BitConverter.ToUInt32(lengthBytes, 0); // Convert length from bytes to int
+                        return length;
+                    }
+                }
+
+
+            }
+
+            return 0;
+
+
         }
 
         public string AddParseRawStream(byte[] rawStream)
@@ -481,5 +638,20 @@ namespace projectGUIApp
             listViewCard.Items.Add(item);
         }
 
+        private bool CheckNACK(byte[] buffer)
+        {
+            byte[] headerMarker = { 0xFF, 0xAA };
+            byte functionalCode = (byte)'N';
+            for (int i = 0; i <= buffer.Length; i++)
+            {
+                if (buffer[i] == headerMarker[0] && buffer[i + 1] == headerMarker[1] &&
+                    buffer[i + 2] == functionalCode)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

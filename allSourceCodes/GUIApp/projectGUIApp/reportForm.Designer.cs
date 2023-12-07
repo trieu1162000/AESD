@@ -64,7 +64,6 @@ namespace projectGUIApp
             this.label2.TabIndex = 37;
             this.label2.Text = "     Supervisor Name:";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // imageList1
             // 
@@ -87,7 +86,6 @@ namespace projectGUIApp
             this.rtxbTemplate.Size = new System.Drawing.Size(633, 334);
             this.rtxbTemplate.TabIndex = 47;
             this.rtxbTemplate.Text = "";
-            this.rtxbTemplate.TextChanged += new System.EventHandler(this.rtxbTemplate_TextChanged);
             // 
             // txbPhoneNumber
             // 
@@ -96,7 +94,6 @@ namespace projectGUIApp
             this.txbPhoneNumber.Name = "txbPhoneNumber";
             this.txbPhoneNumber.Size = new System.Drawing.Size(149, 25);
             this.txbPhoneNumber.TabIndex = 44;
-            this.txbPhoneNumber.TextChanged += new System.EventHandler(this.txbPhoneNumber_TextChanged);
             // 
             // txbName
             // 
@@ -105,7 +102,6 @@ namespace projectGUIApp
             this.txbName.Name = "txbName";
             this.txbName.Size = new System.Drawing.Size(149, 25);
             this.txbName.TabIndex = 43;
-            this.txbName.TextChanged += new System.EventHandler(this.txbName_TextChanged);
             // 
             // txbTemplatePath
             // 
@@ -116,7 +112,6 @@ namespace projectGUIApp
             this.txbTemplatePath.ReadOnly = true;
             this.txbTemplatePath.Size = new System.Drawing.Size(499, 25);
             this.txbTemplatePath.TabIndex = 45;
-            this.txbTemplatePath.TextChanged += new System.EventHandler(this.txbTemplatePath_TextChanged);
             // 
             // btnPreview
             // 
@@ -164,12 +159,10 @@ namespace projectGUIApp
             this.label1.TabIndex = 38;
             this.label1.Text = "     Phone Number:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // loadTemplateDialog
             // 
             this.loadTemplateDialog.FileName = "loadTemplateDialog";
-            this.loadTemplateDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.loadTemplateDialog_FileOk);
             // 
             // saveReportDialog
             // 
@@ -182,7 +175,6 @@ namespace projectGUIApp
             this.txbEmail.Name = "txbEmail";
             this.txbEmail.Size = new System.Drawing.Size(186, 25);
             this.txbEmail.TabIndex = 46;
-            this.txbEmail.TextChanged += new System.EventHandler(this.txbEmail_TextChanged);
             // 
             // btnSaveAs
             // 
@@ -215,7 +207,6 @@ namespace projectGUIApp
             this.label3.TabIndex = 39;
             this.label3.Text = "     Email:";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // reportForm
             // 
@@ -234,6 +225,7 @@ namespace projectGUIApp
             this.Controls.Add(this.btnSaveAs);
             this.Controls.Add(this.label3);
             this.Name = "reportForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Report Management";
             this.ResumeLayout(false);
             this.PerformLayout();

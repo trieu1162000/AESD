@@ -38,7 +38,6 @@ namespace projectGUIApp
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.comStatusGrpBx = new System.Windows.Forms.GroupBox();
             this.rtxtbComStatus = new System.Windows.Forms.RichTextBox();
             this.mnstrHomeScr = new System.Windows.Forms.MenuStrip();
@@ -81,8 +80,7 @@ namespace projectGUIApp
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4,
-            this.columnHeader5,
-            this.columnHeader6});
+            this.columnHeader5});
             this.monitorListView.Font = new System.Drawing.Font("Segoe UI", 9.25F);
             this.monitorListView.GridLines = true;
             this.monitorListView.HideSelection = false;
@@ -92,7 +90,6 @@ namespace projectGUIApp
             this.monitorListView.TabIndex = 1;
             this.monitorListView.UseCompatibleStateImageBehavior = false;
             this.monitorListView.View = System.Windows.Forms.View.Details;
-            this.monitorListView.SelectedIndexChanged += new System.EventHandler(this.listViewTask_SelectedIndexChanged);
             // 
             // columnHeader1
             // 
@@ -109,24 +106,19 @@ namespace projectGUIApp
             // 
             this.columnHeader3.Text = "ID";
             this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader3.Width = 109;
+            this.columnHeader3.Width = 163;
             // 
             // columnHeader4
             // 
-            this.columnHeader4.Text = "I/O";
+            this.columnHeader4.Text = "In/Out";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader4.Width = 100;
+            this.columnHeader4.Width = 105;
             // 
             // columnHeader5
             // 
             this.columnHeader5.Text = "Time";
             this.columnHeader5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader5.Width = 90;
-            // 
-            // columnHeader6
-            // 
-            this.columnHeader6.Text = "Date";
-            this.columnHeader6.Width = 130;
+            this.columnHeader5.Width = 160;
             // 
             // comStatusGrpBx
             // 
@@ -268,7 +260,6 @@ namespace projectGUIApp
         private System.Windows.Forms.ToolStripMenuItem operationManualToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox rtxtbComStatus;
-        private System.Windows.Forms.ColumnHeader columnHeader6;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     }
 }
