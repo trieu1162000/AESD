@@ -425,7 +425,7 @@ namespace projectGUIApp
         private async void btnSyncCard_Click(object sender, EventArgs e)
         {
             bool syncFlagTimeout = false;
-            uint length = 200;
+            uint length = 0;
             // Construct the sRemoveFrame byte array
             byte[] sSyncFrame = new byte[]
             {
@@ -457,7 +457,9 @@ namespace projectGUIApp
                 // Wait for either the dataReceivedEvent or the timeout
                 await waitResult;
 
-                //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                if(length == 0)
+                    length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                Console.WriteLine("Length:" + length.ToString());
                 mainForm.dataReceivedEvent.Reset();
 
                 // Calculate elapsed time
@@ -471,7 +473,9 @@ namespace projectGUIApp
                     break;
                 }
 
-            } while (mainForm.entireMainFormRecievedFrame.Length == 0 || mainForm.entireMainFormRecievedFrame.Length < length);
+            } while (mainForm.entireMainFormRecievedFrame.Length == 0       // Polling while data is yet to be received
+                  || mainForm.entireMainFormRecievedFrame.Length < length   // Length of frame must greater than the length of frames of all cards
+                  || mainForm.entireMainFormRecievedFrame.Length < 5);      // Minimum frame
             // Close the processing form
             processingDialog.Close();
             mainForm.dataReceivedEvent.Reset();
@@ -558,7 +562,7 @@ namespace projectGUIApp
                         rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
                     {
                         Array.Copy(rawStream, i + 3, lengthBytes, 0, 2);
-                        length = BitConverter.ToUInt32(lengthBytes, 0); // Convert length from bytes to int
+                        length = BitConverter.ToUInt16(lengthBytes, 0); // Convert length from bytes to int
                         return length;
                     }
                 }
