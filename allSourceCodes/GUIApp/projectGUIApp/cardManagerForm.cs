@@ -17,10 +17,7 @@ namespace projectGUIApp
     public partial class cardManagerForm : Form
     {
         private byte[] sFinishFrame = { 0xFF, 0xAA, (byte)'F', 0xAA, 0xFF };
-        private const int TimeoutMilliseconds = 5000; // Adjust the timeout as needed
-        private const int syncTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
-        private const int addTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
-        private const int updateTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
+        private const int waitTimeoutMilliseconds = 8000;  // Set your desired timeout value in milliseconds
 
         private SerialPort serialPORT;
         private mainDashboard mainForm;
@@ -72,7 +69,7 @@ namespace projectGUIApp
             List<byte> frameBytes = new List<byte>();
 
             // Add fixed header
-            frameBytes.AddRange(new byte[] {0xFF, 0xAA});
+            frameBytes.AddRange(new byte[] { 0xFF, 0xAA });
 
             // Add functional code, uuid, name, and id
             frameBytes.AddRange(new byte[] { functionalCodeByte });
@@ -80,7 +77,7 @@ namespace projectGUIApp
             frameBytes.AddRange(idBytes);
 
             // Add fixed footer
-            frameBytes.AddRange(new byte[] {0xAA, 0xFF});
+            frameBytes.AddRange(new byte[] { 0xAA, 0xFF });
 
             return frameBytes.ToArray();
 
@@ -91,7 +88,7 @@ namespace projectGUIApp
             // Assuming functionalCode is a single character
 
             // Convert functionalCode to byte
-            byte functionalCodeByte = (byte) functionalCode;
+            byte functionalCodeByte = (byte)functionalCode;
 
             // Convert name, uuid, and id to byte arrays with fixed lengths
             byte[] nameBytes = Encoding.ASCII.GetBytes(name.PadRight(32, '\0')).Take(32).ToArray();
@@ -111,16 +108,16 @@ namespace projectGUIApp
             List<byte> frameBytes = new List<byte>();
 
             // Add fixed header
-            frameBytes.AddRange(new byte[] {0xFF, 0xAA});
+            frameBytes.AddRange(new byte[] { 0xFF, 0xAA });
 
             // Add functional code, uuid, name, and id
-            frameBytes.AddRange(new byte[] {functionalCodeByte});
+            frameBytes.AddRange(new byte[] { functionalCodeByte });
             frameBytes.AddRange(uuidBytes);
             frameBytes.AddRange(nameBytes);
             frameBytes.AddRange(idBytes);
 
             // Add fixed footer
-            frameBytes.AddRange(new byte[] {0xAA, 0xFF});
+            frameBytes.AddRange(new byte[] { 0xAA, 0xFF });
 
             return frameBytes.ToArray();
 
@@ -128,6 +125,9 @@ namespace projectGUIApp
 
         private void btnOK_Click(object sender, EventArgs e)
         {
+            // Send Finished Frame
+            mainForm.serialPORT.Write(sFinishFrame, 0, sFinishFrame.Length);
+            mainForm.cardFormIsOpen = false;
             this.Close();
         }
 
@@ -185,14 +185,13 @@ namespace projectGUIApp
                     // Wait for either the dataReceivedEvent or the timeout
                     await waitResult;
 
-                    //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
                     mainForm.dataReceivedEvent.Reset();
 
                     // Calculate elapsed time
                     TimeSpan elapsedTime = DateTime.Now - startTime;
 
                     // Check if elapsed time exceeds the timeout
-                    if (elapsedTime.TotalMilliseconds > addTimeoutMilliseconds)
+                    if (elapsedTime.TotalMilliseconds > waitTimeoutMilliseconds)
                     {
                         addFlagTimeout = true;
                         // Break out of the loop if the timeout is exceeded
@@ -280,13 +279,13 @@ namespace projectGUIApp
                 // Construct the sRemoveFrame byte array
                 byte[] sRemoveFrame = new byte[]
                 {
-                    0xFF, 0xAA, // Start of frame
-                    (byte)'D',   // 'D' stands for delete
-                    idBytes[0],   // First byte of ID
-                    idBytes[1],   // Second byte of ID
-                    idBytes[2],   // First byte of ID
-                    idBytes[3],   // Second byte of ID
-                    0xAA, 0xFF     // End of frame
+                    0xFF, 0xAA,     // Start of frame
+                    (byte)'D',      // 'D' stands for delete
+                    idBytes[0],     // First byte of ID
+                    idBytes[1],     // Second byte of ID
+                    idBytes[2],     // First byte of ID
+                    idBytes[3],     // Second byte of ID
+                    0xAA, 0xFF      // End of frame
                 };
 
                 for (int i = 0; i < sRemoveFrame.Length; i++)
@@ -369,14 +368,13 @@ namespace projectGUIApp
                     // Wait for either the dataReceivedEvent or the timeout
                     await waitResult;
 
-                    //length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
                     mainForm.dataReceivedEvent.Reset();
 
                     // Calculate elapsed time
                     TimeSpan elapsedTime = DateTime.Now - startTime;
 
                     // Check if elapsed time exceeds the timeout
-                    if (elapsedTime.TotalMilliseconds > updateTimeoutMilliseconds)
+                    if (elapsedTime.TotalMilliseconds > waitTimeoutMilliseconds)
                     {
                         updateFlagTimeout = true;
                         // Break out of the loop if the timeout is exceeded
@@ -429,14 +427,12 @@ namespace projectGUIApp
             // Construct the sRemoveFrame byte array
             byte[] sSyncFrame = new byte[]
             {
-                    0xFF, 0xAA, // Start of frame
-                    (byte)'S',   // 'S' stands for synchronize
-                    0xAA, 0xFF     // End of frame
+                    0xFF, 0xAA,     // Start of frame
+                    (byte)'S',      // 'S' stands for synchronize
+                    0xAA, 0xFF      // End of frame
             };
             mainForm.dataReceivedEvent.Reset();
             this.serialPORT.Write(sSyncFrame, 0, sSyncFrame.Length);
-            //mainForm.dataReceivedEvent.WaitOne();
-            //Console.WriteLine("Jump here");
 
             // Create and show a processing form
             processingForm processingDialog = new processingForm(this);
@@ -457,8 +453,8 @@ namespace projectGUIApp
                 // Wait for either the dataReceivedEvent or the timeout
                 await waitResult;
 
-                if(length == 0)
-                    length = ParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
+                if (length == 0)
+                    length = SyncParseLengthRawStream(mainForm.entireMainFormRecievedFrame);
                 Console.WriteLine("Length:" + length.ToString());
                 mainForm.dataReceivedEvent.Reset();
 
@@ -466,7 +462,7 @@ namespace projectGUIApp
                 TimeSpan elapsedTime = DateTime.Now - startTime;
 
                 // Check if elapsed time exceeds the timeout
-                if (elapsedTime.TotalMilliseconds > syncTimeoutMilliseconds)
+                if (elapsedTime.TotalMilliseconds > waitTimeoutMilliseconds)
                 {
                     syncFlagTimeout = true;
                     // Break out of the loop if the timeout is exceeded
@@ -508,39 +504,10 @@ namespace projectGUIApp
         {
             // Send Finished Frame
             mainForm.serialPORT.Write(sFinishFrame, 0, sFinishFrame.Length);
-
+            mainForm.cardFormIsOpen = false;
         }
 
-        public List<frameClass> SyncParseRawStream(byte[] rawStream)
-        {
-            List<frameClass> frames = new List<frameClass>();
-            int frameSize = 46; // Size of each frame in bytes
-            byte[] headerMarker = { 0xFF, 0xAA };
-            byte functionalCode = (byte)'S';
-            byte[] eofMarker = { 0xAA, 0xFF };
-
-            for (int i = 0; i < rawStream.Length - frameSize + 1; i++)
-            {
-                if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
-                    rawStream[i + 2] == functionalCode)
-                {
-                    int frameEndIndex = i + frameSize; // Add 4 for the length of the EOF marker
-                    if (frameEndIndex <= rawStream.Length &&
-                        rawStream[frameEndIndex - 2] == eofMarker[0] && rawStream[frameEndIndex - 1] == eofMarker[1])
-                    {
-                        byte[] frameBytes = new byte[frameSize];
-                        Array.Copy(rawStream, i, frameBytes, 0, frameSize);
-                        frameClass frame = ParseFrame(frameBytes);
-                        frames.Add(frame);
-                        i = frameEndIndex - 1; // Move to the next potential frame
-                    }
-                }
-            }
-
-            return frames;
-        }
-
-        public uint ParseLengthRawStream(byte[] rawStream)
+        public uint SyncParseLengthRawStream(byte[] rawStream)
         {
             int frameSize = 7; // Size of each frame in bytes
             byte[] headerMarker = { 0xFF, 0xAA };
@@ -567,42 +534,42 @@ namespace projectGUIApp
                     }
                 }
 
-
             }
 
             return 0;
 
-
         }
 
-        public string AddParseRawStream(byte[] rawStream)
+        public List<frameClass> SyncParseRawStream(byte[] rawStream)
         {
-            int frameSize = 10; // Size of each frame in bytes
+            List<frameClass> frames = new List<frameClass>();
+            int frameSize = 46; // Size of each frame in bytes
             byte[] headerMarker = { 0xFF, 0xAA };
-            byte functionalCode = (byte)'A';
+            byte functionalCode = (byte)'S';
             byte[] eofMarker = { 0xAA, 0xFF };
-            byte[] uuidBytes = new byte[5];
-            string uuidString = string.Empty;
 
-            for (int i = 0; i < rawStream.Length; i++)
-            { 
+            for (int i = 0; i < rawStream.Length - frameSize + 1; i++)
+            {
                 if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
                     rawStream[i + 2] == functionalCode)
                 {
-                    int frameEndIndex = i + frameSize - 1;
-                    if (frameEndIndex < rawStream.Length &&
-                        rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
+                    int frameEndIndex = i + frameSize; // Add 4 for the length of the EOF marker
+                    if (frameEndIndex <= rawStream.Length &&
+                        rawStream[frameEndIndex - 2] == eofMarker[0] && rawStream[frameEndIndex - 1] == eofMarker[1])
                     {
-                        Array.Copy(rawStream, i+3, uuidBytes, 0, 5);
-                        uuidString = BitConverter.ToString(uuidBytes).Replace("-", ""); // Extract UUID
+                        byte[] frameBytes = new byte[frameSize];
+                        Array.Copy(rawStream, i, frameBytes, 0, frameSize);
+                        frameClass frame = SyncParseFrame(frameBytes);
+                        frames.Add(frame);
+                        i = frameEndIndex - 1; // Move to the next potential frame
                     }
                 }
             }
 
-            return uuidString;
+            return frames;
         }
 
-        private frameClass ParseFrame(byte[] frameBytes)
+        private frameClass SyncParseFrame(byte[] frameBytes)
         {
             frameClass frame = new frameClass();
 
@@ -632,6 +599,33 @@ namespace projectGUIApp
                 item.SubItems.Add(frame.ID.ToString());
                 listViewCard.Items.Add(item);
             }
+        }
+
+        public string AddParseRawStream(byte[] rawStream)
+        {
+            int frameSize = 10; // Size of each frame in bytes
+            byte[] headerMarker = { 0xFF, 0xAA };
+            byte functionalCode = (byte)'A';
+            byte[] eofMarker = { 0xAA, 0xFF };
+            byte[] uuidBytes = new byte[5];
+            string uuidString = string.Empty;
+
+            for (int i = 0; i < rawStream.Length; i++)
+            {
+                if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
+                    rawStream[i + 2] == functionalCode)
+                {
+                    int frameEndIndex = i + frameSize - 1;
+                    if (frameEndIndex < rawStream.Length &&
+                        rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
+                    {
+                        Array.Copy(rawStream, i + 3, uuidBytes, 0, 5);
+                        uuidString = BitConverter.ToString(uuidBytes).Replace("-", ""); // Extract UUID
+                    }
+                }
+            }
+
+            return uuidString;
         }
 
         private void AddAddDataToListView(string uuid, string name, string id)

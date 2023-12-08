@@ -1,0 +1,15 @@
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\bin\Debug\projectGUIApp.exe.config
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\bin\Debug\projectGUIApp.exe
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\bin\Debug\projectGUIApp.pdb
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.AssemblyReference.cache
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.SuggestedBindingRedirects.cache
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.cardManagerForm.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.mainDashboard.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.processingForm.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.Properties.Resources.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.reportForm.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.settingCOMForm.resources
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.GenerateResource.cache
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.csproj.CoreCompileInputs.cache
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.exe
+D:\Workspace Window\AESD\allSourceCodes\GUIApp\projectGUIApp\obj\Debug\projectGUIApp.pdb

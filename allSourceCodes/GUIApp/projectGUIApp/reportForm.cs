@@ -182,7 +182,7 @@ namespace projectGUIApp
                     table.Cell(i + 2, 2).Range.Text = listData[i].ID;
                     table.Cell(i + 2, 3).Range.Text = listData[i].Name;
                     table.Cell(i + 2, 4).Range.Text = listData[i].InOrOut;
-                    table.Cell(i + 2, 5).Range.Text = listData[i].AuthorizeAtTime;
+                    //table.Cell(i + 2, 5).Range.Text = listData[i].AuthorizeAtTime;
                     if (i != listData.Count - 1) table.Rows.Add(missing);
 
                 }
@@ -196,7 +196,7 @@ namespace projectGUIApp
             myWordDoc.ActiveWindow.Selection.WholeStory();
             myWordDoc.ActiveWindow.Selection.Copy();
             IDataObject dataObject = Clipboard.GetDataObject();
-            rtxbTemplate.Rtf = dataObject.GetData(DataFormats.Rtf).ToString();
+            //rtxbTemplate.Rtf = dataObject.GetData(DataFormats.Rtf).ToString();
 
             object isSave = false;
             myWordDoc.Close(isSave, ref missing, ref missing);
