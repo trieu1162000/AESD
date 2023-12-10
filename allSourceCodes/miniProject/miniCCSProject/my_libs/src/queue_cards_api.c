@@ -82,7 +82,7 @@ void printAllCards(const cardQueue *queue) {
 }
 
 // Function to get a card from the queue based on UUID
-card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
+card *getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
     int i, j;
 
     for (i = 0; i < queue->numCards; i++) {
@@ -98,12 +98,12 @@ card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID) {
 
         // If match is still 1, it means UUID matches for this card
         if (match) {
-            return queue->authorizedCards[i];
+            return &queue->authorizedCards[i];
         }
     }
 
     // Here, there is no match card
-    return;
+    return NULL;
 }
 
 // Function to get the UUIDs of authorized cards
@@ -112,7 +112,7 @@ void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_L
 
     for (i = 0; i < queue->numCards; i++) {
         for (j = 0; j < 5; j++) {
-            uuidArray[i][j] = queue->authorizedCards[i].uuid[j];
+            uuidArray[i][j] = (uint8_t) queue->authorizedCards[i].uuid[j];
         }
     }
 }
@@ -128,6 +128,7 @@ bool removeCard(cardQueue *queue, uint32_t id) {
             }
             initCard(&queue->authorizedCards[queue->numCards - 1]);
             queue->numCards--;
+            queue->rear = (queue->rear - 1) % MAX_CARDS;
             return true;  // Card removed successfully
         }
     }
@@ -149,5 +150,15 @@ bool updateCardBaseOnUUID(cardQueue *queue, const uint32_t *uuid, const char *ne
         }
     }
     return false;  // Card with the specified UUID not found
+}
+
+bool checkCardIsDuplicated(cardQueue *queue, uint32_t *uuid)
+{
+    card *cardToCheck = NULL;
+    
+    cardToCheck = getCardFromUUID(queue, uuid);
+    if(cardToCheck)
+        return true;
+    return false;
 }
 

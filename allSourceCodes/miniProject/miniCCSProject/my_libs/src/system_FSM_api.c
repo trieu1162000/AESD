@@ -138,6 +138,8 @@ void systemStateMachineUpdate(void)
                     DBG("State = STOPPED\n");
                     break;
                 default:
+                    currentState = S_STOPPED;
+                    DBG("State = STOPPED\n");
                     break;
             }
             break;
@@ -178,7 +180,10 @@ void systemStateMachineUpdate(void)
                     // DBG("State = ADDING\n");
                     break;
                 case E_DETECTED:
-                    bWriteAction();
+                    if(bWriteAction(&cardNeedToDo))
+                        DBG("Write data into card successfully\n");
+                    else
+                        DBG("Fail to write data into card\n");
                     currentState = S_MODIFYING;
                     DBG("State = MODIFYING\n");
                     break;

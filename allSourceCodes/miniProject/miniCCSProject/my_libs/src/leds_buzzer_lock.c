@@ -37,9 +37,9 @@ void buzzerControl(enum controlState state)
 void lockControl(enum controlState state)
 {
     if (state)
-        GPIOPinWrite(GPIO_PORTE_BASE, buzzerPin, buzzerPin);
-    else 
-        GPIOPinWrite(GPIO_PORTE_BASE, buzzerPin, 0);
+        GPIOPinWrite(GPIO_PORTE_BASE, lockPin, lockPin);
+    else
+        GPIOPinWrite(GPIO_PORTE_BASE, lockPin, 0);
 }
 
 

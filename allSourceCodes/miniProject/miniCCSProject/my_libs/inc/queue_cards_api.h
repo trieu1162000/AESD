@@ -37,9 +37,10 @@ extern bool enqueueCard(cardQueue *queue, const char *name, uint32_t id, const u
 extern bool dequeueCard(cardQueue *queue, card *dequeuedCard);
 extern void printAllCards(const cardQueue *queue);
 extern void initCard(card *card);
-extern card getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID);
+extern card *getCardFromUUID(const cardQueue *queue, const uint32_t *targetUUID);
 extern void getAuthorizedCardsUUID(const cardQueue *queue, uint32_t (*uuidArray)[CARD_LENGTH]);
 extern bool removeCard(cardQueue *queue, uint32_t id);
 extern bool updateCardBaseOnUUID(cardQueue *queue, const uint32_t *uuid, const char *newName, uint32_t newId);
+extern bool checkCardIsDuplicated(cardQueue *queue, uint32_t *uuid);
 
 #endif /* MY_LIBS_INC_QUEUE_CARDS_API_H_ */

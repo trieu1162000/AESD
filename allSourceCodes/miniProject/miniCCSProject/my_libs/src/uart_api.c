@@ -56,16 +56,6 @@ void UARTIntHandler(void)
     //
     // Loop while there are characters in the receive FIFO.
     //
-    // Wait until the UART receiver has data
-    // while (UARTCharsAvail(UART1_BASE))
-    // {
-
-    //     // Read a byte
-    //     rawReceivedFrame[i] = UARTCharGetNonBlocking(UART1_BASE);
-    //     i++;
-
-    // }
-
     while (UARTCharsAvail(UART1_BASE))
     {
         uint8_t receivedByte = UARTCharGetNonBlocking(UART1_BASE);
@@ -78,29 +68,6 @@ void UARTIntHandler(void)
         mainFrame[receivedFrameIndex] = rawReceivedFrame[j];
         receivedFrameIndex++;
     }
-//        // Check for the start of the frame
-//        if (!isInFrame && receivedByte == FRAME_START1)
-//        {
-//            isInFrame = 1;
-//            receivedFrameIndex = 0;
-//            rawReceivedFrame[0] = receivedByte;
-//        }
-//        else if (isInFrame)
-//        {
-//            rawReceivedFrame[++receivedFrameIndex] = receivedByte;
-//
-//            // Check for the end of the frame
-//            if (receivedByte == FRAME_END2)
-//            {
-//                // Process the complete frame
-//                // (you can add your processing logic here)
-//                receivedFrameIndex = 0;
-//                // Reset for the next frame
-//                isInFrame = 0;
-//            }
-//        }
-
-
 
     // Raise an ISR Receive Flag
     ISRReceiveFlag = 1;

@@ -57,7 +57,7 @@ int main(void) {
     initPeriphs();
     initSPI();
     initLEDs();
-    initLock();
+     initLock();
     initBuzzer();
     initTimer();
 #ifdef  DEBUG
@@ -84,7 +84,7 @@ int main(void) {
 
     loadCardsFromEEPROM(&cardQueueForEEPROM);
     
-    printAllCards(&cardQueueForEEPROM);
+    // printAllCards(&cardQueueForEEPROM);
 
     // uint32_t authorizedCardTestUUIDs[MAX_CARDS][CARD_LENGTH]  = {0};
     // card verifiedTestCard;
@@ -101,9 +101,13 @@ int main(void) {
 
     while(1)
     {
+//        ledControl(LEDGREEN, ON);
+//        SysCtlDelay(SysCtlClockGet()/3); //Delay
 
-        systemStateMachineUpdate();
-        systemEventUpdate();
+//        ledControl(LEDGREEN, OFF);
+//        SysCtlDelay(SysCtlClockGet()/3); //Delay
+         systemStateMachineUpdate();
+         systemEventUpdate();
 
     }
 }

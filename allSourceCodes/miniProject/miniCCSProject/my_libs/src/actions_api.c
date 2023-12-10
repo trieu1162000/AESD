@@ -10,25 +10,35 @@
 int8_t detectedFlag = MI_NOTAGERR;
 unsigned char str[MAX_LEN] = {0};
 unsigned char cardUUID[CARD_LENGTH] = {0};
+uint32_t cardUUID4Bytes[CARD_LENGTH] = {0};
 unsigned char funnctionalCode = 0; 
 uint32_t authorizedCardUUIDs[MAX_CARDS][CARD_LENGTH] = {0};
 card verifiedCard;
 char receivedFrame[MAX_FRAME_SIZE] = {0};
 size_t receivedFrameLength = 0;
 uint8_t idBytes[4] = {'\0'};
-
-static uint8_t passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-
+//uint8_t passWd[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t passWd[6] =  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 int8_t bVerifyAction(void)
 {
     // Read the UID of card
-    int i;
+    int count, i, j;
+
+
+    for(j = 0; j < CARD_LENGTH; j++)
+        cardUUID4Bytes[j] = (uint32_t) cardUUID[j];
+
     getAuthorizedCardsUUID(&cardQueueForEEPROM, authorizedCardUUIDs);
     DBG("Verify ID: \n\r");
     dumpHex((unsigned char *)cardUUID, CARD_LENGTH);
-    for (i = 0; i < MAX_CARDS; ++i) {
-        if (memcmp(cardUUID, authorizedCardUUIDs[i], CARD_LENGTH) == 0) {
-            verifiedCard = getCardFromUUID(&cardQueueForEEPROM, (uint32_t *) cardUUID);
+    for (i = 0; i < cardQueueForEEPROM.numCards; ++i) {
+        count = 0;
+        for (j = 0; j < CARD_LENGTH; j++){
+            if(cardUUID4Bytes[j] == authorizedCardUUIDs[i][j])
+                count++;
+        }
+        if (count == 5) {
+            verifiedCard = *getCardFromUUID(&cardQueueForEEPROM, cardUUID4Bytes);
             return VERIFY_PASS;  // Card is authorized
         }
     }
@@ -38,6 +48,7 @@ int8_t bVerifyAction(void)
 
 int8_t bPollingAction(void)
 {
+    // initRC522();
     int8_t status;
     status = rc522Request(PICC_REQIDL, str);
     if(status == MI_OK){
@@ -66,7 +77,10 @@ void bPassAction(void)
     // At this time, it will point to the Timer Int Handler named timerUIntHandler
     // Disable the timer before enabling it again to reset the count
     TimerDisable(TIMER0_BASE, TIMER_A);
+    HWREG(TIMER2_BASE+0x50) = 5*SysCtlClockGet() - 1;
     TimerEnable(TIMER0_BASE, TIMER_A);
+
+    lockControl(ON); // ON->Lock
 
     // Then, we may put some data, means that raise an TX ISR
     verifiedSending(&verifiedCard);
@@ -89,6 +103,7 @@ void bFailAction(void)
     // At this time, it will point to the Timer Int Handler named timerUIntHandler
     // Disable the timer before enabling it again to reset the count
     TimerDisable(TIMER1_BASE, TIMER_A);
+    HWREG(TIMER1_BASE+0x50) = 5*SysCtlClockGet() - 1;
     TimerEnable(TIMER1_BASE, TIMER_A);
 
     // Then, we may put turn on LED Red, Buzzer for longer seconds
@@ -160,42 +175,85 @@ void bSyncAction(cardQueue *queue)
 }
 
 // This action is used for adding new card
-void bWriteAction(void)
+bool bWriteAction(card *writeCard)
 {
     int i;
 
     // We need to disable the timeout if a card already been detected
     TimerDisable(TIMER2_BASE, TIMER_A);
 
-
     for (i = 0; i < CARD_LENGTH; i++)
-        cardNeedToDo.uuid[i] = (uint32_t) cardUUID[i];
-    // Write for existing card
-    writeName((uint8_t *) cardNeedToDo.name);
-    writeID(cardNeedToDo.id);
-    // Sync to the database in Tiva C
-    enqueueCard(&cardQueueForEEPROM, cardNeedToDo.name, cardNeedToDo.id, cardNeedToDo.uuid);
+        writeCard->uuid[i] = (uint32_t) cardUUID[i];
 
-    // Send Back the UUID to the GUI
-    bACKAdded();
+    // Reset for next use
+    memset(cardUUID, 0, CARD_LENGTH);
+
+    // Write for existing card. These codes below is using to write for only a writeable card
+    // We dont need them at this time. So skip here, uncomment them in case you need to use.
+    // writeName((uint8_t *) cardNeedToDo.name);
+    // writeID(cardNeedToDo.id);
+
+    if(checkCardIsDuplicated(&cardQueueForEEPROM, writeCard->uuid))
+    {
+
+        bNACKAction();
+        return false;
+    }
+    else
+    {
+        // Sync to the database in Tiva C
+        enqueueCard(&cardQueueForEEPROM, writeCard->name, writeCard->id, writeCard->uuid);
+        
+        // Save back to EEPROM
+        saveCardsToEEPROM(&cardQueueForEEPROM);
+        printAllCards(&cardQueueForEEPROM);
+
+        // Send Back the UUID to the GUI
+        bACKAdded();
+
+        return true;
+    }
 
 }
 
 bool bRemoveAction(uint32_t id)
 {
-    return removeCard(&cardQueueForEEPROM, id);
+    if(removeCard(&cardQueueForEEPROM, id))
+    {
+        saveCardsToEEPROM(&cardQueueForEEPROM);
+        return true;
+    }
+    else 
+        return false;
 }
 
 bool bUpdateAction(card *updateCard)
 {
+    int i;
     // We need to disable the timeout if a card already been detected
     TimerDisable(TIMER2_BASE, TIMER_A);
 
-    // Write for existing card
-    writeName((uint8_t *) updateCard->name);
-    writeID(updateCard->id);
+    for (i = 0; i < CARD_LENGTH; i++)
+        updateCard->uuid[i] = (uint32_t) cardUUID[i];
+    
+    // Reset for next use
+    memset(cardUUID, 0, CARD_LENGTH);
 
-    return updateCardBaseOnUUID(&cardQueueForEEPROM, updateCard->uuid, updateCard->name, updateCard->id);
+    // Send an ACK to the GUI
+    bACKUpdated();
+    // Write for existing card. These codes below is using to write for only a writeable card
+    // We dont need them at this time. So skip here, uncomment them in case you need to use.
+    // writeName((uint8_t *) updateCard->name);
+    // writeID(updateCard->id);
+
+    if(updateCardBaseOnUUID(&cardQueueForEEPROM, updateCard->uuid, updateCard->name, updateCard->id))
+    {
+        saveCardsToEEPROM(&cardQueueForEEPROM);
+        printAllCards(&cardQueueForEEPROM);
+        return true;
+    }
+    else
+        return false;
 }
 
 // Function to send back the ACK when GUI Requests
@@ -230,6 +288,22 @@ void bACKAdded(void)
     for (i = 0; i < sizeof(cardNeedToDo.uuid) / sizeof(uint32_t); i++) {
         UARTCharPut(UART1_BASE, (uint8_t) cardNeedToDo.uuid[i]);
     }
+
+    // End of Frame
+    UARTCharPut(UART1_BASE, 0xAA);
+    UARTCharPut(UART1_BASE, 0xFF);
+}
+
+void bACKUpdated(void)
+{
+    // After adding, the UUID in the card will be sent back to the GUI
+    // Frame: 0xFFAA - 'A' - data (UUID) - 0xAAFF
+    // Start of Frame
+    UARTCharPut(UART1_BASE, 0xFF);
+    UARTCharPut(UART1_BASE, 0xAA);
+
+    // Identifier 'U' for indicating the data is from the "card" structure
+    UARTCharPut(UART1_BASE, 'U');
 
     // End of Frame
     UARTCharPut(UART1_BASE, 0xAA);
@@ -278,6 +352,7 @@ void sendLength(uint16_t length)
 void bStartTimeOut(void)
 {
     TimerDisable(TIMER2_BASE, TIMER_A);
+    HWREG(TIMER2_BASE+0x50) = 6*SysCtlClockGet() - 1;
     TimerEnable(TIMER2_BASE, TIMER_A);
 }
 
@@ -293,7 +368,7 @@ void dumpHex(unsigned char* buffer, int len){
 
 }
 // Function to send the data of the verified card
-void verifiedSending(const card* myCard)
+void verifiedSending(card* myCard)
 {
     int i;
     // After passinng, the data in the card will be sent to the GUI
@@ -499,9 +574,20 @@ void sync1Card(card *syncCard)
 
 int8_t writeID(uint8_t id)
 {
-    int8_t status;
+    int8_t i, status;
+    uint8_t uuidTemp[4];
 
-    status = rc522Auth(PICC_AUTHENT1A, WRITE_ID_BLOCK, passWd, (uint8_t *) &cardNeedToDo.uuid);
+    for(i = 0; i < CARD_LENGTH - 1; i++)
+        uuidTemp[i] = (uint8_t) cardNeedToDo.uuid[i];
+        
+	status = rc522SelectTag(uuidTemp);
+	if(status!=MI_OK)
+	{
+		DBG("select card: no card.\n");
+		return status;            
+	}
+
+    status = rc522Auth(PICC_AUTHENT1A, WRITE_ID_BLOCK, passWd, uuidTemp);
     if(status!=MI_OK)
     {
         DBG("write authrioze err.\n");
@@ -517,13 +603,27 @@ int8_t writeID(uint8_t id)
 
 int8_t writeName(uint8_t *name)
 {
-    int8_t status;
+    int8_t i, status;
+    uint8_t uuidTemp[4];
 
-    status = rc522Auth(PICC_AUTHENT1A, WRITE_NAME_BLOCK, passWd, (uint8_t *) &cardNeedToDo.uuid);
-    if(status!=MI_OK)
+    for(i = 0; i < CARD_LENGTH - 1; i++)
+        uuidTemp[i] = (uint8_t) cardNeedToDo.uuid[i];
+
+	status = rc522SelectTag(uuidTemp);
+	if(status!=MI_OK)
+	{
+		DBG("select card: no card.\n");
+		return status;            
+	}
+
+	for(i = 0; i<64; i++ )
     {
-        DBG("write authrioze err.\n");
-        return status;
+	    status = rc522Auth(PICC_AUTHENT1A, i, passWd, uuidTemp);
+        if(status!=MI_OK)
+        {
+            DBG("%d: write authrioze err.\n", i);
+    //        return status;
+        }
     }
     status = rc522WriteBlock(WRITE_NAME_BLOCK, &name[0]);
     if(status!=MI_OK)

@@ -27,8 +27,10 @@
 #define VERIFY_FAIL           (-1)
 #define YET_VERIFY            0
 
+extern uint8_t passWd[6];
 extern unsigned char str[MAX_LEN];
 extern unsigned char cardUUID[CARD_LENGTH];
+extern uint32_t cardUUID4Bytes[CARD_LENGTH];
 extern char receivedFrame[MAX_FRAME_SIZE];
 extern size_t receivedFrameLength;
 extern uint8_t idBytes[4];
@@ -42,7 +44,7 @@ extern card verifiedCard;
 // These functions only be used in actions_api
 static uint32_t combineBytes(uint8_t bytes[4]);
 static void dumpHex(unsigned char *buffer, int len);
-static void verifiedSending(const card *myCard);
+static void verifiedSending(card *myCard);
 static void normalDisplay(void);
 static void warningDisplay(void);
 static void passDisplay(void);
@@ -63,10 +65,11 @@ extern void bFailAction(void);
 extern void bStopAction(void);
 extern void bReceiveAction(void);
 extern void bSyncAction(cardQueue *queue);
-extern void bWriteAction(void);
+extern bool bWriteAction(card *writeCard);
 extern bool bUpdateAction(card *updateCard);
 extern bool bRemoveAction(uint32_t id);
 extern void bACKRequestAction(void);
 extern void bACKAdded(void);
+extern void bACKUpdated(void);
 
 #endif /* MY_LIBS_INC_ACTIONS_API_H_ */

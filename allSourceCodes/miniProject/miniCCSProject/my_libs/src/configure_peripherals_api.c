@@ -97,7 +97,7 @@ void initTimer(void)
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
     TimerConfigure(TIMER2_BASE, TIMER_CFG_ONE_SHOT);
-    TimerLoadSet(TIMER2_BASE, TIMER_A, 4*SysCtlClockGet()-1);
+    TimerLoadSet(TIMER2_BASE, TIMER_A, 6*SysCtlClockGet()-1);
     IntEnable(INT_TIMER2A);
     TimerIntEnable(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
 }

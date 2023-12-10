@@ -294,7 +294,7 @@ static void rc522CalculateCRC(uint8_t*  pIndata, uint8_t len, uint8_t* pOutData)
  * Input parameter: serNum--Send card serial number
  * Return: return the card storage volume
  */
-static int8_t rc522SelectTag(uint8_t* serNum) {
+int8_t rc522SelectTag(uint8_t* serNum) {
     uint8_t i;
     int8_t status;
     uint8_t size;
@@ -413,21 +413,21 @@ int8_t rc522WriteBlock(uint8_t blockAddr, uint8_t* writeData) {
 void initRC522(void) {
     unsigned char a;
 
-    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
-    GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_1, HIGH_PIN);
+//    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_1, LOW_PIN);
+//    GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_1, HIGH_PIN);
     rc522Reset();
     rc522WriteRaw(RC522_REG_T_MODE, 0x8D);
     rc522WriteRaw(RC522_REG_T_PRESCALER, 0x3E);
     rc522WriteRaw(RC522_REG_T_RELOAD_L, 30);
     rc522WriteRaw(RC522_REG_T_RELOAD_H, 0);
-//    rc522WriteRaw(RC522_REG_RF_CFG, 0x70); // 48dB gain
+    rc522WriteRaw(RC522_REG_RF_CFG, 0x70); // 48dB gain
     rc522WriteRaw(RC522_REG_TX_AUTO, 0x40);
     rc522WriteRaw(RC522_REG_MODE, 0x3D);
-    a = rc522ReadRaw(RC522_REG_T_RELOAD_L);
-    if(a != 30)
-        DBG("rc522Init: No RC522 detected\r\n");
-    else
-        DBG("rc522Init: RC522 exist\r\n");
+   a = rc522ReadRaw(RC522_REG_T_RELOAD_L);
+   if(a != 30)
+       DBG("rc522Init: No RC522 detected\r\n");
+   else
+       DBG("rc522Init: RC522 exist\r\n");
 //    rc522AntennaOff();
     rc522AntennaOn(); // Open the antenna
 }
@@ -438,7 +438,7 @@ void initRC522(void) {
  * Input parameter: NULL
  * Return: NULL
  */
-static void rc522Reset(void) {
+void rc522Reset(void) {
     rc522WriteRaw(RC522_REG_COMMAND, PCD_RESETPHASE);
 }
 
