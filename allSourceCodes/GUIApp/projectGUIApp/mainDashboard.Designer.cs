@@ -207,6 +207,7 @@ namespace projectGUIApp
             this.operationManualToolStripMenuItem.Name = "operationManualToolStripMenuItem";
             this.operationManualToolStripMenuItem.Size = new System.Drawing.Size(193, 24);
             this.operationManualToolStripMenuItem.Text = "&Project Description";
+            this.operationManualToolStripMenuItem.Click += new System.EventHandler(this.operationManualToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 

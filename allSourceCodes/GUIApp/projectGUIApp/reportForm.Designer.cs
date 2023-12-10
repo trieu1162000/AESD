@@ -224,6 +224,7 @@ namespace projectGUIApp
             this.Controls.Add(this.txbEmail);
             this.Controls.Add(this.btnSaveAs);
             this.Controls.Add(this.label3);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "reportForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Report Management";

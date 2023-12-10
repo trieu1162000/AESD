@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -9,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO.Ports;
 using System.Threading;
-using System.Reflection;
+using System.Diagnostics;
 
 namespace projectGUIApp
 {
@@ -18,9 +16,9 @@ namespace projectGUIApp
         private byte[] sRequestFrame = { 0xFF, 0xAA, (byte)'R', 0xAA, 0xFF };
         private byte[] waitACKFrame = { 0xFF, 0xAA, (byte)'O', 0xAA, 0xFF };
         private bool ackReceived = false;
+        private bool cardManagerIsClicked = false;
         public byte[] mainFormRecievedFrame;
         public byte[] entireMainFormRecievedFrame;
-        private const int TimeoutACKMilliseconds = 10000; // 10 seconds
         public bool cardFormIsOpen = false;
         public ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
 
@@ -57,10 +55,6 @@ namespace projectGUIApp
         {
             rtxtbComStatus.SelectionColor = color;
             rtxtbComStatus.AppendText(message + Environment.NewLine);
-        }
-        private void listViewTask_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void communicationToolStripMenuItem_Click(object sender, EventArgs e)
@@ -105,7 +99,7 @@ namespace projectGUIApp
 
                 //Console.WriteLine();
                 //Console.WriteLine("====================");
-                if(!cardFormIsOpen)
+                if(!cardFormIsOpen && !cardManagerIsClicked)
                     this.Invoke(new EventHandler(HandleVerifiedDataReceived));
                 else 
                     dataReceivedEvent.Set();
@@ -118,23 +112,12 @@ namespace projectGUIApp
             }
         }
 
-        private void newCardToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void deleteCardToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void reportToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (reportDataForm == null || reportDataForm.IsDisposed)
             {
                 // Create a new instance if the form is not yet created or has been disposed
                 reportDataForm = new reportForm();
-                cardFormIsOpen = true;
             }
 
             // Show the form as a dialog
@@ -145,7 +128,6 @@ namespace projectGUIApp
             {
                 // Optionally set the form variable to null if you want to recreate it next time
                 reportDataForm = null;
-                cardFormIsOpen = false;
 
                 // Perform any other actions after the form is closed
             }
@@ -155,13 +137,9 @@ namespace projectGUIApp
             }
         }
 
-        private void dataManagerToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private async void cardManagerToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            cardManagerIsClicked = true;
             if (serialPORT.IsOpen)
             {
                 dataReceivedEvent.Reset();
@@ -211,12 +189,16 @@ namespace projectGUIApp
                     // Check if ACK frame was received successfully
                     if (ackReceived)
                     {
+                        cardManagerIsClicked = false;
+                        cardFormIsOpen = true;
                         entireMainFormRecievedFrame = new byte[0];
                         // ACK received, open the cardManagerForm
                         OpenCardManagerForm();
                     }
                     else
                     {
+                        cardFormIsOpen = false;
+                        cardManagerIsClicked = false;
                         MessageBox.Show(this, "Error: ACK not received.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
@@ -226,13 +208,15 @@ namespace projectGUIApp
             }
             else
             {
+                cardFormIsOpen = false;
+                cardManagerIsClicked = false;
                 MessageBox.Show(this, "Error: Serial port is not open.", "Connection", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string message = "This software is designed for a Final Project:" +
+            string message = "This software is designed for a Final Project of AESD" +
                  "\nMonitoring & Controlling of Access Control System (ACS) using RFID." +
                  "\nAt Ho Chi Minh City University of Technology (HCMUT)." +
                  "\n\nDesigned by Group 6.";
@@ -278,7 +262,7 @@ namespace projectGUIApp
 
         public void ParseVerifiedData(byte[] rawStream)
         {
-            int frameSize = 10; // TODO
+            int frameSize = 41; // TODO
             byte[] headerMarker = { 0xFF, 0xAA };
             byte functionalCode = (byte)'V';
             byte[] eofMarker = { 0xAA, 0xFF };
@@ -286,7 +270,7 @@ namespace projectGUIApp
             string name = string.Empty;
             List<authorizedDataClass> listData = authorizedDataClass.ListAuthorizedData;
 
-            for (int i = 0; i < rawStream.Length; i++)
+            for (int i = 0; i < rawStream.Length - 2; i++)
             {
                 if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
                     rawStream[i + 2] == functionalCode)
@@ -296,12 +280,14 @@ namespace projectGUIApp
                         rawStream[frameEndIndex - 1] == eofMarker[0] && rawStream[frameEndIndex] == eofMarker[1])
                     {
                         byte[] nameBytes = new byte[32];
-                        Array.Copy(rawStream, 3, nameBytes, 0, 32); // Adjust the starting index for the name
+                        Array.Copy(rawStream, 7, nameBytes, 0, 32); // Adjust the starting index for the name
                         name = Encoding.ASCII.GetString(nameBytes).TrimEnd('\0'); // Extract and convert Name from ASCII bytes
 
                         byte[] idBytes = new byte[4];
                         Array.Copy(rawStream, 3, idBytes, 0, 4); // Adjust the starting index for the ID
                         id = BitConverter.ToUInt32(idBytes, 0).ToString(); // Convert ID from bytes to int
+
+                        entireMainFormRecievedFrame = new byte[0];
 
                         string inOrOut = CheckInOrOut(name);
                         // Add to List View first
@@ -324,6 +310,7 @@ namespace projectGUIApp
                 }
             }
         }
+
         private string CheckInOrOut(string targetName)
         {
             int count = 0;
@@ -348,6 +335,14 @@ namespace projectGUIApp
             else
                 return "Out";
 
+        }
+
+        private void operationManualToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string url = "https://github.com/trieu1162000/AESD";
+
+            // Open the link in the default web browser
+            Process.Start(url);
         }
     }
 }

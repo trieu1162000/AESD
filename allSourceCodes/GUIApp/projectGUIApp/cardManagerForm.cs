@@ -99,7 +99,7 @@ namespace projectGUIApp
                                          .ToArray();
 
             // Convert id string to an integer
-            int idInt = int.Parse(id);
+            UInt32 idInt = UInt32.Parse(id);
 
             // Convert the integer id to 4 bytes
             byte[] idBytes = BitConverter.GetBytes(idInt);
@@ -162,6 +162,29 @@ namespace projectGUIApp
                     return;
                 }
 
+                if (UInt64.TryParse(id, out UInt64 resultCheck))
+                {
+                    // Check if the parsed value is within the range of a 32-bit uint
+                    if (resultCheck > UInt32.MaxValue)
+                    {
+                        MessageBox.Show("Input exceeds the maximum value for a UInt32.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a valid ID.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Check if the length of the name is within the allowed limit
+                if (name.Length > 32)
+                {
+                    // Handle the case where the name is too long
+                    MessageBox.Show("Name must be 32 characters or less.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return; // or throw an exception or handle it according to your application's logic
+                }
+
                 // Construct sFrame and communicate with MCU (similar to previous code)
                 byte[] sAddFrame = constructSendAddFrame('A', name, id);
                 mainForm.serialPORT.Write(sAddFrame, 0, sAddFrame.Length);
@@ -198,19 +221,20 @@ namespace projectGUIApp
                         break;
                     }
 
-                } while (mainForm.entireMainFormRecievedFrame.Length == 0);
+                } while (mainForm.entireMainFormRecievedFrame.Length < 5);
                 // Close the processing form
                 processingDialog.Close();
 
                 mainForm.dataReceivedEvent.Reset();
 
-                //for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
-                //{
-                //    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
-                //}
+                Console.WriteLine("==================== Add Function ===================");
+                for (int i = 0; i < mainForm.entireMainFormRecievedFrame.Length; i++)
+                {
+                    Console.Write($"{mainForm.entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
+                }
 
-                //Console.WriteLine();
-                //Console.WriteLine("====================");
+                Console.WriteLine();
+
                 if (addFlagTimeout)
                 {
                     MessageBox.Show(this, "Error: Timeout, failed to add card. Please try again.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -220,12 +244,13 @@ namespace projectGUIApp
                     // Check NACK first
                     if (!CheckNACK(mainForm.entireMainFormRecievedFrame))
                     {
-                        AddAddDataToListView("23456", name, id);
-                        //AddAddDataToListView(AddParseRawStream(mainForm.entireMainFormRecievedFrame), name, id);
-                        MessageBox.Show("Add successfully.");
+                        //AddAddDataToListView("23456", name, id);
+                        string uuid = AddParseRawStream(mainForm.entireMainFormRecievedFrame);
+                        AddAddDataToListView(uuid, name, id);
+                        MessageBox.Show(this, "Card is added successfully.", "Successfull Action", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
-                        MessageBox.Show(this, "Error: Failed to add card. Please try again.", "Card is not detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(this, "Error: No card is scanned or duplicated card.\nPlease help check and try again.", "Adding Card Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 mainForm.entireMainFormRecievedFrame = new byte[0];
@@ -235,6 +260,9 @@ namespace projectGUIApp
             {
                 mainForm.LogMessage("Error communicating with MCU: " + ex.Message, Color.Red);
             }
+            txtBoxAddName.Text = string.Empty;
+            txtBoxAddID.Text = string.Empty;
+
         }
 
         private void btnRemove_Click(object sender, EventArgs e)
@@ -301,6 +329,8 @@ namespace projectGUIApp
             {
                 MessageBox.Show("Item not found.");
             }
+
+            cbbRemoveID.SelectedIndex = -1;
         }
 
         private async void btnUpdate_Click(object sender, EventArgs e)
@@ -332,6 +362,29 @@ namespace projectGUIApp
                 MessageBox.Show("Invalid UUID to update.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return;
+            }
+
+            if (UInt64.TryParse(newID, out UInt64 resultCheck))
+            {
+                // Check if the parsed value is within the range of a 32-bit uint
+                if (resultCheck > UInt32.MaxValue)
+                {
+                    MessageBox.Show("Input exceeds the maximum value for a UInt32.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid ID.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Check if the length of the name is within the allowed limit
+            if (newName.Length > 32)
+            {
+                // Handle the case where the name is too long
+                MessageBox.Show("Name must be 32 characters or less.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return; // or throw an exception or handle it according to your application's logic
             }
 
             ListViewItem itemToUpdate = null;
@@ -405,7 +458,7 @@ namespace projectGUIApp
                     {
                         itemToUpdate.SubItems[1].Text = newName;
                         itemToUpdate.SubItems[2].Text = newID;
-                        MessageBox.Show("Card is updated successfully.");
+                        MessageBox.Show(this, "Card is update successfully.", "Successfull Action", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                         MessageBox.Show(this, "Error: Failed to update card. Please try again.", "Card is not detected", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -416,8 +469,12 @@ namespace projectGUIApp
             }
             else
             {
-                MessageBox.Show("Item not found.");
+                MessageBox.Show(this, "Error: Card not found.", "Unknow Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            cbbUpdateUUID.SelectedIndex = -1;
+            txtBoxUpdateID.Text = string.Empty;
+            txtBoxUpdateName.Text = string.Empty;
+
         }
 
         private async void btnSyncCard_Click(object sender, EventArgs e)
@@ -519,7 +576,7 @@ namespace projectGUIApp
             if (rawStream.Length < 7)
                 return 0;
 
-            for (int i = 0; i < rawStream.Length; i++)
+            for (int i = 0; i < rawStream.Length - 2; i++)
             {
                 if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
                     rawStream[i + 2] == functionalCode)
@@ -610,7 +667,7 @@ namespace projectGUIApp
             byte[] uuidBytes = new byte[5];
             string uuidString = string.Empty;
 
-            for (int i = 0; i < rawStream.Length; i++)
+            for (int i = 0; i < rawStream.Length - 2; i++)
             {
                 if (rawStream[i] == headerMarker[0] && rawStream[i + 1] == headerMarker[1] &&
                     rawStream[i + 2] == functionalCode)
@@ -640,7 +697,7 @@ namespace projectGUIApp
         {
             byte[] headerMarker = { 0xFF, 0xAA };
             byte functionalCode = (byte)'N';
-            for (int i = 0; i <= buffer.Length; i++)
+            for (int i = 0; i <= buffer.Length - 2; i++)
             {
                 if (buffer[i] == headerMarker[0] && buffer[i + 1] == headerMarker[1] &&
                     buffer[i + 2] == functionalCode)

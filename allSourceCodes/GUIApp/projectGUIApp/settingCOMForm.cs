@@ -38,6 +38,7 @@ namespace projectGUIApp
                 btnConnect.ForeColor = Color.Brown;
                 btnConnect.Image = new Bitmap(projectGUIApp.Properties.Resources.icon_disconnect);
                 btnReScan.Enabled = false;
+
             }
         }
 
@@ -64,6 +65,12 @@ namespace projectGUIApp
                     btnConnClicked = true;
                     mainForm.LogMessage(serialPORT.PortName.ToString() + " is connected", Color.MediumBlue);
                     serialPORT.DataReceived += new SerialDataReceivedEventHandler(mainForm.serialDataReceivedHandler); // Subscribe to the event
+
+                    cbbBaudRate.Enabled = false;
+                    cbbCOMPort.Enabled = false;
+                    cbbDataBits.Enabled = false;
+                    cbbParity.Enabled = false;
+                    cbbStopBits.Enabled = false;
 
                 }
                 catch (Exception error)
@@ -98,6 +105,11 @@ namespace projectGUIApp
 
                     //Display.UpdateComStatus("status", 0, serialPORT.PortName + " is closed", System.Drawing.Color.Red);
                     // TODO: Enable other fields
+                    cbbBaudRate.Enabled = true;
+                    cbbCOMPort.Enabled = true;
+                    cbbDataBits.Enabled = true;
+                    cbbParity.Enabled = true;
+                    cbbStopBits.Enabled = true;
                 }
             }
 
