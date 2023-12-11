@@ -87,12 +87,12 @@ void initBuzzer(void)
 void initTimer(void)
 {
     TimerConfigure(TIMER1_BASE, TIMER_CFG_ONE_SHOT);
-    TimerLoadSet(TIMER1_BASE, TIMER_A, 5*SysCtlClockGet()-1);
+    TimerLoadSet(TIMER1_BASE, TIMER_A, 3*SysCtlClockGet()-1);
     IntEnable(INT_TIMER1A);
     TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     TimerConfigure(TIMER0_BASE, TIMER_CFG_ONE_SHOT);
-    TimerLoadSet(TIMER0_BASE, TIMER_A, 5*SysCtlClockGet()-1);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, 3*SysCtlClockGet()-1);
     IntEnable(INT_TIMER0A);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
@@ -155,7 +155,7 @@ void initUART(void){
     GPIOPinConfigure(GPIO_PB1_U1TX);
     GPIOPinTypeUART(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
-    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
+    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 9600,
         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
     
     //

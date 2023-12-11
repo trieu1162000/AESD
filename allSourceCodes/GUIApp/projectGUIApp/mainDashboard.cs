@@ -17,6 +17,7 @@ namespace projectGUIApp
         private byte[] waitACKFrame = { 0xFF, 0xAA, (byte)'O', 0xAA, 0xFF };
         private bool ackReceived = false;
         private bool cardManagerIsClicked = false;
+        private const int waitTimeoutMilliseconds = 5000;
         public byte[] mainFormRecievedFrame;
         public byte[] entireMainFormRecievedFrame;
         public bool cardFormIsOpen = false;
@@ -140,26 +141,48 @@ namespace projectGUIApp
         private async void cardManagerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             cardManagerIsClicked = true;
+            bool requestFlagTimeout = false;
             if (serialPORT.IsOpen)
             {
                 dataReceivedEvent.Reset();
                 // Send Request Frame
                 this.serialPORT.Write(sRequestFrame, 0, sRequestFrame.Length);
 
-                // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
-                Task<int> waitResult = Task.Run(() =>
-                {
-                    // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
-                    int result = WaitHandle.WaitAny(new WaitHandle[] { dataReceivedEvent }, 8000);
-                    return result;
-                });
-
                 // Create and show a processing form
                 processingForm processingDialog = new processingForm(this);
                 processingDialog.ShowCentered(this);
 
-                // Wait for either the dataReceivedEvent or the timeout
-                int waitResultIndex = await waitResult;
+                // Record the start time
+                DateTime startTime = DateTime.Now;
+                do
+                {
+                    // Use Task.Run to run the dataReceivedEvent.WaitOne asynchronously
+                    Task<int> waitResult = Task.Run(() =>
+                    {
+                        // Wait for the dataReceivedHandler to signal that it has completed or until the timeout (8000 milliseconds)
+                        int result = WaitHandle.WaitAny(new WaitHandle[] { this.dataReceivedEvent }, 3000);
+                        return result;
+                    });
+
+                    // Wait for either the dataReceivedEvent or the timeout
+                    await waitResult;
+
+                    this.dataReceivedEvent.Reset();
+
+                    // Calculate elapsed time
+                    TimeSpan elapsedTime = DateTime.Now - startTime;
+
+                    // Check if elapsed time exceeds the timeout
+                    if (elapsedTime.TotalMilliseconds > waitTimeoutMilliseconds)
+                    {
+                        requestFlagTimeout = true;
+                        // Break out of the loop if the timeout is exceeded
+                        break;
+                    }
+
+                } while (this.entireMainFormRecievedFrame.Length < 5);
+                // Close the processing form
+                processingDialog.Close();
 
                 // Close the processing form
                 processingDialog.Close();
@@ -170,6 +193,9 @@ namespace projectGUIApp
                 {
                     Console.Write($"{entireMainFormRecievedFrame[i]:X2} "); // Print each byte as a two-digit hexadecimal number
                 }
+
+                // Reset the event for the next round
+                dataReceivedEvent.Reset();
 
                 Console.WriteLine();
                 Console.WriteLine("====================");
@@ -183,8 +209,10 @@ namespace projectGUIApp
                 //{
                 ackReceived = CheckPattern(entireMainFormRecievedFrame, waitACKFrame);
 
-                    // Reset the event for the next round
-                    dataReceivedEvent.Reset();
+                if (requestFlagTimeout)
+                    MessageBox.Show(this, "Error: Timeout, failed to send the GUI request. Please try again.", "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
 
                     // Check if ACK frame was received successfully
                     if (ackReceived)
@@ -204,6 +232,7 @@ namespace projectGUIApp
 
                     // Reset the entire main frame
                     entireMainFormRecievedFrame = new byte[0];
+                }
 
             }
             else

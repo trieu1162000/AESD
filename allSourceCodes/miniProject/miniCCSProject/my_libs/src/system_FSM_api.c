@@ -62,6 +62,9 @@ void systemStateMachineUpdate(void)
 
         case S_UNLOCKING:
             switch (currentEvent) {
+                case E_AUTHORIZED:
+                    detectedFlag = bPollingAction();
+                    break;
                 case E_DETECTED:
                     verifyFlag = bVerifyAction();
                     currentState = S_VERIFYING;

@@ -97,7 +97,7 @@ void bPassAction(void)
 void bFailAction(void)
 {
     // Here, We will lock the door immediately
-    lockControl(ON); // ON->Lock
+    lockControl(OFF); // ON->Lock
 
     // Simultaneously, enable the unlocked timer 1 and wait for it to expire
     // At this time, it will point to the Timer Int Handler named timerUIntHandler
@@ -147,6 +147,10 @@ void bReceiveAction(void)
     {
         // Parsing the data in receive frame into the card
         parseDataInFrame(receivedFrame, &cardNeedToDo);
+    }
+    else
+    {
+        currentEvent = E_GUI_FINISHED; // Handle error when ISR_RECEIVE is still raise so then STOP state may polling forever
     }
 
     // Need to reset the frame before receiving again

@@ -69,7 +69,8 @@ void UARTIntHandler(void)
         receivedFrameIndex++;
     }
 
-    // Raise an ISR Receive Flag
-    ISRReceiveFlag = 1;
+    if(receivedFrameIndex > 4)
+        // Raise an ISR Receive Flag
+        ISRReceiveFlag = 1;
 
 }
