@@ -1,101 +1,45 @@
-//*****************************************************************************
-//
-// freertos_demo.c - Simple FreeRTOS example.
-//
-// Copyright (c) 2012-2017 Texas Instruments Incorporated.  All rights reserved.
-// Software License Agreement
-// 
-// Texas Instruments (TI) is supplying this software for use solely and
-// exclusively on TI's microcontroller products. The software is owned by
-// TI and/or its suppliers, and is protected under applicable copyright
-// laws. You may not combine this software with "viral" open-source
-// software in order to form a larger program.
-// 
-// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
-// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
-// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
-// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
-// DAMAGES, FOR ANY REASON WHATSOEVER.
-// 
-// This is part of revision 2.1.4.178 of the EK-TM4C123GXL Firmware Package.
-//
-//*****************************************************************************
+#include <FreeRTOS.h>
+#include <task.h>
+#include <semphr.h>
+#include "my_libs/inc/config_peripherals_api.h"
+#include "my_libs/inc/rc522_api.h"
+#include "my_libs/inc/uart_api.h"
+#include "my_libs/inc/lcd_i2c_api.h"
+#include "my_libs/inc/timer_handler_api.h"
+#include "my_libs/inc/eeprom_api.h"
+#include "my_libs/inc/states.h"
+#include "my_libs/inc/actions_api.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/pin_map.h"
-#include "driverlib/rom.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/uart.h"
-#include "utils/uartstdio.h"
-#include "led_task.h"
-#include "switch_task.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
+// Minimum stack size for FreeRTOS tasks.
+#define STACK_SIZE 100
 
-//*****************************************************************************
-//
-//! \addtogroup example_list
-//! <h1>FreeRTOS Example (freertos_demo)</h1>
-//!
-//! This application demonstrates the use of FreeRTOS on Launchpad.
-//!
-//! The application blinks the user-selected LED at a user-selected frequency.
-//! To select the LED press the left button and to select the frequency press
-//! the right button.  The UART outputs the application status at 115,200 baud,
-//! 8-n-1 mode.
-//!
-//! This application utilizes FreeRTOS to perform the tasks in a concurrent
-//! fashion.  The following tasks are created:
-//!
-//! - An LED task, which blinks the user-selected on-board LED at a
-//!   user-selected rate (changed via the buttons).
-//!
-//! - A Switch task, which monitors the buttons pressed and passes the
-//!   information to LED task.
-//!
-//! In addition to the tasks, this application also uses the following FreeRTOS
-//! resources:
-//!
-//! - A Queue to enable information transfer between tasks.
-//!
-//! - A Semaphore to guard the resource, UART, from access by multiple tasks at
-//!   the same time.
-//!
-//! - A non-blocking FreeRTOS Delay to put the tasks in blocked state when they
-//!   have nothing to do.
-//!
-//! For additional details on FreeRTOS, refer to the FreeRTOS web page at:
-//! http://www.freertos.org/
-//
-//*****************************************************************************
+// This is used by bFSM
+SemaphoreHandle_t bTimerEventSemaphore_;
+SemaphoreHandle_t bAcceptEventSemaphore_;
+SemaphoreHandle_t bDispatchEventSemaphore_;
 
+// This is used by gFSM
+SemaphoreHandle_t gTimerEventSemaphore_;
+SemaphoreHandle_t gAcceptEventSemaphore_;
+SemaphoreHandle_t gDispatchEventSemaphore_;
+SemaphoreHandle_t gUARTEventSemaphore_;
+SemaphoreHandle_t pollingEventSemaphore_;
 
-//*****************************************************************************
-//
-// The mutex that protects concurrent access of UART from multiple tasks.
-//
-//*****************************************************************************
-xSemaphoreHandle g_pUARTSemaphore;
+// This is used by both
+SemaphoreHandle_t switchGUIEventSemaphore_;
+SemaphoreHandle_t switchBareEventSemaphore_;
 
-//*****************************************************************************
-//
-// The error routine that is called if the driver library encounters an error.
-//
-//*****************************************************************************
-#ifdef DEBUG
-void
-__error__(char *pcFilename, uint32_t ui32Line)
-{
+// Static functions
+void dumpHex(unsigned char* buffer, int len){
+
+    int i;
+    UARTprintf(" ");
+    for(i=0; i < len; i++) {
+        UARTprintf("0x%x, ", buffer[i]);
+    }
+    UARTprintf("  FIM! \r\n"); //End
+
 }
-
-#endif
 
 //*****************************************************************************
 //
@@ -115,104 +59,578 @@ vApplicationStackOverflowHook(xTaskHandle *pxTask, char *pcTaskName)
     }
 }
 
-//*****************************************************************************
-//
-// Configure the UART and its pins.  This must be called before UARTprintf().
-//
-//*****************************************************************************
-void
-ConfigureUART(void)
+void timerUIntHandler(void)
 {
-    //
-    // Enable the GPIO Peripheral used by the UART.
-    //
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    // Clear the timer interrupt
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-    //
-    // Enable UART0
-    //
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+    // Raised the tRaised_
+    tRaised_ = TIMER_UNLOCKED;
 
-    //
-    // Configure GPIO Pins for UART mode.
-    //
-    ROM_GPIOPinConfigure(GPIO_PA0_U0RX);
-    ROM_GPIOPinConfigure(GPIO_PA1_U0TX);
-    ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
-    //
-    // Use the internal 16MHz oscillator as the UART clock source.
-    //
-    UARTClockSourceSet(UART0_BASE, UART_CLOCK_PIOSC);
-
-    //
-    // Initialize the UART for console I/O.
-    //
-    UARTStdioConfig(0, 115200, 16000000);
+    // This will attempt to wake the MessageTask and continue execution there.
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    // Give the semaphore and unblock the MessageTask.
+    xSemaphoreGiveFromISR(bTimerEventSemaphore_, &xHigherPriorityTaskWoken);
+    
+    // If the MessageTask was successfully woken, then yield execution to it
+    //	and go there now (instead of changing context to another task).
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-//*****************************************************************************
-//
-// Initialize FreeRTOS and start the initial set of tasks.
-//
-//*****************************************************************************
-int
-main(void)
+void timerWIntHandler(void)
 {
-    //
-    // Set the clocking to run at 50 MHz from the PLL.
-    //
-    ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ |
-                       SYSCTL_OSC_MAIN);
+    // Clear the timer interrupt
+    TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
-    //
-    // Initialize the UART and configure it for 115,200, 8-N-1 operation.
-    //
-    ConfigureUART();
+    // Raised the tRaised_
+    tRaised_ = TIMER_WARNED;
 
-    //
-    // Print demo introduction.
-    //
-    UARTprintf("\n\nWelcome to the EK-TM4C123GXL FreeRTOS Demo!\n");
+    // This will attempt to wake the MessageTask and continue execution there.
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    // Give the semaphore and unblock the MessageTask.
+    xSemaphoreGiveFromISR(bTimerEventSemaphore_, &xHigherPriorityTaskWoken);
+    
+    // If the MessageTask was successfully woken, then yield execution to it
+    //	and go there now (instead of changing context to another task).
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
 
-    //
-    // Create a mutex to guard the UART.
-    //
-    g_pUARTSemaphore = xSemaphoreCreateMutex();
+void timerAUIntHandler(void)
+{
+    // Clear the timer interrupt
+    TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
 
-    //
-    // Create the LED task.
-    //
-    if(LEDTaskInit() != 0)
-    {
+    // This will attempt to wake the MessageTask and continue execution there.
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    // Give the semaphore and unblock the MessageTask.
+    xSemaphoreGiveFromISR(gTimerEventSemaphore_, &xHigherPriorityTaskWoken);
+    
+    // If the MessageTask was successfully woken, then yield execution to it
+    //	and go there now (instead of changing context to another task).
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
 
-        while(1)
+void gTimerTask(void *pvParameters)
+{
+	
+	for (;;) {
+			
+		// Block until a timer trigger is received...
+		BaseType_t taken = xSemaphoreTake(gTimerEventSemaphore_, portMAX_DELAY);
+		if (taken == pdFAIL) {
+			continue;
+		}
+			
+        // Signal to the main task that the download is complete.
+        // xSemaphoreTake(gAcceptEventSemaphore_, portMAX_DELAY);
+        gFSM_.event_ = GUI_E_AU_TIMEOUT;
+        xSemaphoreGive(gDispatchEventSemaphore_);
+	
+	}
+}
+
+void UARTTask(void *pvParameters)
+{
+	
+	for (;;) {
+			
+		// Block until a UART trigger is received...
+		BaseType_t taken = xSemaphoreTake(gUARTEventSemaphore_, portMAX_DELAY);
+		if (taken == pdFAIL) {
+			continue;
+		}
+			
+        int i;
+        bool result;
+        size_t rawDataLength  = 0;
+
+        DBG("Received Frame: ");
+        for(i = 0; i<MAX_FRAME_LENGTH; i++)
+            UARTprintf("%x ", mainFrame[i]);
+        DBG("\n");
+
+        rawDataLength = sizeof(mainFrame) / sizeof(mainFrame[0]);    // Get the data into the frame from the raw data
+        result = parseFirstFrameInRawData((uint8_t *) mainFrame, rawDataLength);
+        if(result)
         {
+            // Parsing the data in receive frame into the card
+            parseDataInFrame(receivedFrame, &cardNeedToDo);
+                    // Need to reset the frame before receiving again
+            memset(rawReceivedFrame, 0, MAX_FRAME_LENGTH);
+            memset(mainFrame, 0, MAX_FRAME_LENGTH);
+            receivedFrameIndex = 0;
+        }
+
+        // At here, need to switch from bareTask to GUITask
+        if(bFSM_.event_ == BARE_E_GUI_REQUEST)
+        {
+            xSemaphoreGive(bDispatchEventSemaphore_);
+        } 
+        else
+            xSemaphoreGive(gDispatchEventSemaphore_);
+	
+	}
+}
+
+void GUITask(void *pvParameters)
+{
+
+    for (;;) {
+
+        xSemaphoreGive(gAcceptEventSemaphore_);
+
+        // Block until an event is dispatched...
+        BaseType_t taken = xSemaphoreTake(gDispatchEventSemaphore_, portMAX_DELAY);
+        if (taken == pdFAIL) {
+            continue;
+        }
+
+        // DBG("Bare task\n");
+        bool result = false;
+        switch (gFSM_.state_)
+        {
+            case GUI_S_STOPPED:
+                switch (gFSM_.event_) {
+                    case GUI_E_ADD:
+                        gFSM_.state_ = GUI_S_ADDING;
+                        bStartTimeOut();
+                        DBG("State = ADDING\n");
+                        break;
+                    case GUI_E_UPDATE:
+                        gFSM_.state_ = GUI_S_UPDATING;
+                        bStartTimeOut();
+                        DBG("State = UPDATING\n");
+                        break;
+                    case GUI_E_SYNC:
+                        bSyncAction(&cardQueueForEEPROM);
+                        gFSM_.state_ = GUI_S_SYNCHRONIZING;
+                        DBG("State = SYNCHRONIZING\n");
+                        break;
+                    case GUI_E_REMOVE:
+                        result = bRemoveAction(cardNeedToDo.id);
+                        if (result)
+                            printAllCards(&cardQueueForEEPROM);
+                        else
+                            DBG("Remove card with specify ID fail\n");
+                        gFSM_.state_ = GUI_S_REMOVING;
+                        DBG("State = REMOVING\n");
+                        break;
+                    case GUI_E_COMPLETED:
+                        // Handle semaphore to back to the bare task
+                        xSemaphoreGive(switchBareEventSemaphore_);
+                        xSemaphoreTake(switchGUIEventSemaphore_, portMAX_DELAY);
+                    default:
+                        break;
+                }
+                break;
+
+            case GUI_S_ADDING:
+                switch (gFSM_.event_) {
+                    case GUI_E_DETECTED:
+                        if(bWriteAction(&cardNeedToDo))
+                            DBG("Write data into card successfully\n");
+                        else
+                            DBG("Fail to write data into card\n");
+                        gFSM_.state_ = GUI_S_MODIFYING;
+                        DBG("State = MODIFYING\n");
+                        break;
+                    case GUI_E_AU_TIMEOUT:
+                        bNACKAction();
+                        gFSM_.state_ = GUI_S_STOPPED;
+                        DBG("State = STOPPED\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case GUI_S_UPDATING:
+                switch (gFSM_.event_) {
+                    case GUI_E_DETECTED:
+                        if(bUpdateAction(&cardNeedToDo))
+                            DBG("Update successfully\n");
+                        else
+                            DBG("Failed to update\n");
+                        gFSM_.state_ = GUI_S_MODIFYING;
+                        DBG("State = MODIFYING\n");
+                        break;
+                    case GUI_E_AU_TIMEOUT:
+                        bNACKAction();
+                        gFSM_.state_ = GUI_S_STOPPED;
+                        DBG("State = STOPPED\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case GUI_S_MODIFYING:
+            case GUI_S_REMOVING:
+            case GUI_S_SYNCHRONIZING:
+                switch (gFSM_.event_) {
+                    case GUI_E_ADD:
+                        gFSM_.state_ = GUI_S_ADDING;
+                        bStartTimeOut();
+                        DBG("State = ADDING\n");
+                        break;
+                    case GUI_E_UPDATE:
+                        gFSM_.state_ = GUI_S_UPDATING;
+                        bStartTimeOut();
+                        DBG("State = UPDATING\n");
+                        break;
+                    case GUI_E_SYNC:
+                        bSyncAction(&cardQueueForEEPROM);
+                        gFSM_.state_ = GUI_S_SYNCHRONIZING;
+                        DBG("State = SYNCHRONIZING\n");
+                        break;
+                    case GUI_E_REMOVE:
+                        result = bRemoveAction(cardNeedToDo.id);
+                        if (result)
+                            printAllCards(&cardQueueForEEPROM);
+                        else
+                            DBG("Remove card with specify ID fail\n");                        gFSM_.state_ = GUI_S_REMOVING;
+                        DBG("State = REMOVING\n");
+                        break;
+                    case GUI_E_FINISHED:
+                        saveCardsToEEPROM(&cardQueueForEEPROM);
+                        gFSM_.state_ = GUI_S_STOPPED;
+                        gFSM_.event_ = GUI_E_COMPLETED;
+                        DBG("State = STOPPED\n");
+                        xSemaphoreGive(gDispatchEventSemaphore_);
+
+                    default:
+                        break;
+                }
+                break;
+
         }
     }
+}
 
-    //
-    // Create the switch task.
-    //
-    if(SwitchTaskInit() != 0)
-    {
-
-        while(1)
+void bTimerTask(void *pvParameters)
+{
+	
+	for (;;) {
+			
+		// Block until a timer trigger is received...
+		BaseType_t taken = xSemaphoreTake(bTimerEventSemaphore_, portMAX_DELAY);
+		if (taken == pdFAIL) {
+			continue;
+		}
+			
+        switch(tRaised_)
         {
+            case TIMER_UNLOCKED:
+                bFSM_.event_ = BARE_E_UNLOCKED;			
+                break;
+            case TIMER_WARNED:
+                bFSM_.event_ = BARE_E_WARNED;			
+                break;
+        }
+        xSemaphoreGive(bDispatchEventSemaphore_);
+	
+	}
+}
+
+void bareTask(void *pvParameters)
+{
+
+    for (;;) {
+
+        xSemaphoreGive(bAcceptEventSemaphore_);
+
+        // Block until an event is dispatched...
+        BaseType_t taken = xSemaphoreTake(bDispatchEventSemaphore_, portMAX_DELAY);
+        if (taken == pdFAIL) {
+            continue;
+        }
+
+        // DBG("Bare task\n");
+
+        switch (bFSM_.state_)
+        {
+
+            case BARE_S_STOPPED:
+                switch (bFSM_.event_) {
+                    case BARE_E_DETECTED:
+                        bVerifyAction();
+                        bFSM_.state_ = BARE_S_VERIFYING;
+                        DBG("State = VERIFYING\n");
+                        break;
+                    case BARE_E_GUI_REQUEST:
+                        bACKRequestAction();
+                        DBG("Switch to the GUITask at here and wait until return back\n");
+                        xSemaphoreGive(switchGUIEventSemaphore_);
+                        xSemaphoreTake(switchBareEventSemaphore_, portMAX_DELAY);
+                        break;
+                    default:
+                        bFSM_.event_ = BARE_E_FINISHED;
+                        break;
+                }
+                break;
+
+            case BARE_S_VERIFYING:
+                switch (bFSM_.event_) {
+                    case BARE_E_AUTHORIZED:
+                        /*
+                            * The card is authorized
+                            */
+                        bPassAction();
+                        bFSM_.state_ = BARE_S_UNLOCKING;
+                        DBG("State = UNLOCKING\n");
+                        break;
+                    case BARE_E_DENIED:
+                        /*
+                            * The card is denied
+                            */
+                        bFailAction();
+                        bFSM_.state_ = BARE_S_WARNING;
+                        DBG("State = WARNING\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case BARE_S_UNLOCKING:
+                switch (bFSM_.event_) {
+                    case BARE_E_DETECTED:
+                        bVerifyAction();
+                        bFSM_.state_ = BARE_S_VERIFYING;
+                        DBG("State = VERIFYING\n");
+                        break;
+                    case BARE_E_UNLOCKED: // This is a unlock timer event
+                        bStopAction();
+                        bFSM_.state_ = BARE_S_STOPPED;
+                        bFSM_.event_ = BARE_E_FINISHED;
+                        DBG("State = STOPPED\n");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case BARE_S_WARNING:
+                switch (bFSM_.event_) {
+                    case BARE_E_DETECTED:
+                        bVerifyAction();
+                        DBG("State = VERIFYING\n");
+                        bFSM_.state_ = BARE_S_VERIFYING;
+                        break;
+                    case BARE_E_WARNED: // This is a warning timer event
+                        bStopAction();
+                        DBG("State = STOPPED\n");
+                        bFSM_.state_ = BARE_S_STOPPED;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
         }
     }
+}
 
-    //
-    // Start the scheduler.  This should not return.
-    //
+void pollingTask(void *pvParameters)
+{
+    for (;;) {
+
+        // DBG("Polling task\n");
+        // if(bFSM_.state_ == BARE_S_VERIFYING)
+        //     xSemaphoreTake(bAcceptEventSemaphore_, portMAX_DELAY);
+        DBG("Current State: %d", gFSM_.state_);
+        if(gFSM_.state_ != GUI_S_ADDING && gFSM_.state_ != GUI_S_UPDATING)
+            xSemaphoreTake(gAcceptEventSemaphore_, portMAX_DELAY);
+
+        int8_t status;
+        status = rc522Request(PICC_REQIDL, str);
+        if(status == MI_OK){
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, HIGH_PIN);
+            DBG("Card Detected! \r\n"); //Card Detected
+        }
+        DBG("Card not Detected! \r\n"); //Card Detected
+
+        status = rc522Anticoll(&str[2]);
+        memcpy(cardUUID, &str[2], 5);
+
+        // Handle the detected card here
+        if(status == MI_OK){
+            DBG("ID: \n\r");
+            dumpHex((unsigned char *)cardUUID, CARD_LENGTH);
+            SysCtlDelay(SysCtlClockGet()/6); //Delay
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, LOW_PIN);
+            // bFSM_.event_ = BARE_E_DETECTED;
+            gFSM_.event_ = GUI_E_DETECTED;
+            xSemaphoreGive(gDispatchEventSemaphore_);
+        }
+
+    }
+}
+
+// Catch-all error handler.
+static void errHandler(void)
+{
+        // Spin...
+        while (1);
+}
+
+int initTasks()
+{
+
+    int success = -1;
+
+    do {
+
+        bTimerEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!bTimerEventSemaphore_) {
+            break;
+        }
+
+        bAcceptEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!bAcceptEventSemaphore_) {
+            break;
+        }
+
+        bDispatchEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!bDispatchEventSemaphore_) {
+            break;
+        }
+
+        switchGUIEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!switchGUIEventSemaphore_) {
+            break;
+        }
+
+        switchBareEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!switchBareEventSemaphore_) {
+            break;
+        }
+
+        gUARTEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!gUARTEventSemaphore_) {
+            break;
+        }
+
+        gTimerEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!gTimerEventSemaphore_) {
+            break;
+        }
+
+        gAcceptEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!gAcceptEventSemaphore_) {
+            break;
+        }
+
+        gDispatchEventSemaphore_ = xSemaphoreCreateBinary();
+        if (!gDispatchEventSemaphore_) {
+            break;
+        }
+
+        // The bTimer task will have a highest priority
+        xTaskCreate(bTimerTask, "Timer", STACK_SIZE/5, NULL, 3, NULL);
+
+        // The gTimer task will have a highest priority
+        xTaskCreate(gTimerTask, "gTimer", STACK_SIZE/5, NULL, 3, NULL);
+
+        // The UART task will have a highest priority
+        xTaskCreate(UARTTask, "UART", STACK_SIZE, NULL, 3, NULL);
+
+        // The Bare task will have a higher priority than the Polling task.
+        xTaskCreate(bareTask, "Bare", STACK_SIZE, NULL, 2, NULL);
+
+        // The GUI task will have a higher priority than the Polling task.
+        xTaskCreate(GUITask, "GUI", STACK_SIZE, NULL, 2, NULL);
+
+        // Create the track tasks at the lowest priority.
+        xTaskCreate(pollingTask, "Polling", STACK_SIZE/2, NULL, 1, NULL);
+
+        success = 0;
+
+    }    while (pdFALSE);
+
+
+    return success;
+
+}
+
+static void hd44780_init(struct lcd_i2c *lcd, struct lcd_i2c_geometry *geometry)
+{
+    lcd->geometry = geometry;
+    lcd->pos.row = 0;
+    lcd->pos.col = 0;
+    memset(lcd->esc_seq_buf.buf, 0, ESC_SEQ_BUF_SIZE);
+    lcd->esc_seq_buf.length = 0;
+    lcd->is_in_esc_seq = false;
+    lcd->backlight = true;
+    lcd->cursor_blink = false;
+    lcd->cursor_display = false;
+}
+
+void initTestLED(void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3);
+}
+
+int main(void) {
+
+    SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
+
+    //======================================================================================
+    // Testing portion
+    //======================================================================================
+    // Initialize EEPROM
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_EEPROM0);
+    EEPROMInit();
+//    EEPROMMassErase();
+
+    //======================================================================================
+
+    initPeriphs();
+    initSPI();
+    initLEDs();
+    initLock();
+    initBuzzer();
+    initTimer();
+#ifdef  DEBUG
+    initConsole();
+#endif
+    initUART();
+    DBG("SSI Enabled! SPI Mode!  \r\nData: 8bits.\n\r");
+    initRC522();
+    initTestLED();
+
+    // Initialize the card queue
+    initCardQueue(&cardQueueForEEPROM);
+
+    loadCardsFromEEPROM(&cardQueueForEEPROM);
+    
+    printAllCards(&cardQueueForEEPROM);
+
+//    dequeueCard(&cardQueueForEEPROM, &testCard);
+//    saveCardsToEEPROM(&cardQueueForEEPROM);
+
+    bFSM_.event_ = BARE_E_FINISHED;
+    bFSM_.state_ = BARE_S_STOPPED;
+    gFSM_.event_ = GUI_E_FINISHED;
+    gFSM_.state_ = GUI_S_STOPPED;
+    //======================================================================================
+
+//    if (initTasks()) {
+//       errHandler();
+//    }
+
+    // Startup of the FreeRTOS scheduler.  The program should block here.
     vTaskStartScheduler();
 
-    //
-    // In case the scheduler returns for some reason, print an error and loop
-    // forever.
-    //
+    // The following line should never be reached.  Failure to allocate enough
+    //    memory from the heap would be one reason.
+    for (;;);
 
-    while(1)
-    {
-    }
 }
+
+
+
