@@ -1,0 +1,8 @@
+
+**** Build of configuration Debug for project FreeRTOSExample1 ****
+
+"D:\\ccs\\utils\\bin\\gmake" -k -j 4 all -O 
+ 
+gmake[1]: 'FreeRTOSExample1.out' is up to date.
+
+**** Build Finished ****

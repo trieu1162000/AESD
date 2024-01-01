@@ -1,0 +1,380 @@
+******************************************************************************
+                  TI ARM Linker PC v20.2.2                     
+******************************************************************************
+>> Linked Fri Apr 23 11:01:26 2021
+
+OUTPUT FILE NAME:   <example11_sheduler.out>
+ENTRY POINT SYMBOL: "_c_int00_noargs"  address: 00001395
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00040000  00001766  0003e89a  R  X
+  SRAM                  20000000   00008000  00000278  00007d88  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00000000    00000000    00001768   00001768    r-x
+  00000000    00000000    0000026c   0000026c    r-- .intvecs
+  0000026c    0000026c    0000128e   0000128e    r-x .text
+  000014fc    000014fc    000001fc   000001fc    r-- .const
+  000016f8    000016f8    00000070   00000070    r-- .cinit
+20000000    20000000    00000278   00000000    rw-
+  20000000    20000000    00000200   00000000    rw- .stack
+  20000200    20000200    00000074   00000000    rw- .data
+  20000274    20000274    00000004   00000000    rw- .bss
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    0000026c     
+                  00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
+
+.text      0    0000026c    0000128e     
+                  0000026c    0000049c     uartstdio.obj (.text)
+                  00000708    00000210     ledGreenStateMachine.obj (.text)
+                  00000918    0000016c     driverlib.lib : gpio.obj (.text:GPIOPadConfigSet)
+                  00000a84    0000015c     scheduler.obj (.text)
+                  00000be0    0000013c     ledRedStateMachine.obj (.text)
+                  00000d1c    00000118     driverlib.lib : sysctl.obj (.text:SysCtlClockGet)
+                  00000e34    000000f4                   : sysctl.obj (.text:SysCtlClockSet)
+                  00000f28    000000e8     main.obj (.text)
+                  00001010    0000009c     rtsv7M4_T_le_v4SPD16_eabi.lib : memcpy_t2.asm.obj (.text)
+                  000010ac    0000009c     switches.obj (.text)
+                  00001148    00000068     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
+                  000011b0    00000060     led.obj (.text)
+                  00001210    0000004c     driverlib.lib : gpio.obj (.text:GPIOPinConfigure)
+                  0000125c    00000046                   : uart.obj (.text:UARTConfigSetExpClk)
+                  000012a2    00000002     rtsv7M4_T_le_v4SPD16_eabi.lib : div0.asm.obj (.text)
+                  000012a4    00000044                                   : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit:__TI_auto_init_nobinit_nopinit)
+                  000012e8    00000040                                   : u_divt2.asm.obj (.text)
+                  00001328    00000038     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralPresent)
+                  00001360    00000034                   : sysctl.obj (.text:SysCtlPeripheralEnable)
+                  00001394    00000034     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.text:_c_int00_noargs:_c_int00_noargs)
+                  000013c8    0000002c     driverlib.lib : gpio.obj (.text:GPIODirModeSet)
+                  000013f4    00000020                   : uart.obj (.text:UARTDisable)
+                  00001414    0000001c     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
+                  00001430    0000001a     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOOutput)
+                  0000144a    00000016                   : gpio.obj (.text:GPIOPinTypeUART)
+                  00001460    00000014                   : systick.obj (.text:SysTickEnable)
+                  00001474    00000014                   : systick.obj (.text:SysTickIntEnable)
+                  00001488    00000014                   : uart.obj (.text:UARTEnable)
+                  0000149c    00000010                   : systick.obj (.text:SysTickPeriodSet)
+                  000014ac    0000000e     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
+                  000014ba    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  000014c6    0000000a     driverlib.lib : uart.obj (.text:UARTCharGet)
+                  000014d0    0000000a                   : uart.obj (.text:UARTCharPut)
+                  000014da    00000006                   : gpio.obj (.text:GPIOPinRead)
+                  000014e0    00000006                   : gpio.obj (.text:GPIOPinWrite)
+                  000014e6    00000006                   : sysctl.obj (.text:SysCtlDelay)
+                  000014ec    00000006                   : uart.obj (.text:UARTClockSourceSet)
+                  000014f2    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  000014f6    00000004                                   : exit.c.obj (.text:abort:abort)
+
+.const     0    000014fc    000001fc     
+                  000014fc    00000090     driverlib.lib : gpio.obj (.const:g_pui32GPIOBaseAddrs)
+                  0000158c    0000006c                   : sysctl.obj (.const:g_pui32Xtals)
+                  000015f8    00000052     ledGreenStateMachine.obj (.const:.string)
+                  0000164a    00000002     --HOLE-- [fill = 0]
+                  0000164c    00000038     ledRedStateMachine.obj (.const:.string)
+                  00001684    00000019     ledRedStateMachine.obj (.const:.string:$P$T0$1)
+                  0000169d    00000014     ledGreenStateMachine.obj (.const:.string:$P$T0$1)
+                  000016b1    00000003     --HOLE-- [fill = 0]
+                  000016b4    00000012     uartstdio.obj (.const:.string)
+                  000016c6    00000002     --HOLE-- [fill = 0]
+                  000016c8    0000000c     uartstdio.obj (.const:g_ui32UARTBase)
+                  000016d4    0000000c     uartstdio.obj (.const:g_ui32UARTPeriph)
+                  000016e0    0000000c     led.obj (.const:ledPin)
+                  000016ec    00000005     main.obj (.const:.string:$P$T0$1)
+                  000016f1    00000003     --HOLE-- [fill = 0]
+                  000016f4    00000004     uartstdio.obj (.const)
+
+.cinit     0    000016f8    00000070     
+                  000016f8    0000004a     (.cinit..data.load) [load image, compression = lzss]
+                  00001742    00000002     --HOLE-- [fill = 0]
+                  00001744    0000000c     (__TI_handler_table)
+                  00001750    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  00001758    00000010     (__TI_cinit_table)
+
+.init_array 
+*          0    00000000    00000000     UNINITIALIZED
+
+.data      0    20000200    00000074     UNINITIALIZED
+                  20000200    00000028     task.obj (.data:g_psSchedulerTable)
+                  20000228    00000018     ledGreenStateMachine.obj (.data:stateName)
+                  20000240    00000010     ledRedStateMachine.obj (.data:stateName)
+                  20000250    0000000c     ledRedStateMachine.obj (.data)
+                  2000025c    00000009     ledGreenStateMachine.obj (.data)
+                  20000265    00000003     --HOLE--
+                  20000268    00000005     uartstdio.obj (.data)
+                  2000026d    00000003     --HOLE--
+                  20000270    00000004     task.obj (.data)
+
+.bss       0    20000274    00000004     UNINITIALIZED
+                  20000274    00000004     scheduler.obj (.bss)
+
+.stack     0    20000000    00000200     UNINITIALIZED
+                  20000000    00000004     rtsv7M4_T_le_v4SPD16_eabi.lib : boot_cortex_m.c.obj (.stack)
+                  20000004    000001fc     --HOLE--
+
+__llvm_prf_cnts 
+*          0    20000000    00000000     UNINITIALIZED
+
+MODULE SUMMARY
+
+       Module                         code   ro data   rw data
+       ------                         ----   -------   -------
+    .\
+       uartstdio.obj                  1180   46        5      
+       ledGreenStateMachine.obj       528    102       33     
+       tm4c123gh6pm_startup_ccs.obj   12     620       0      
+       ledRedStateMachine.obj         316    81        28     
+       scheduler.obj                  348    0         4      
+       main.obj                       232    5         0      
+       switches.obj                   156    0         0      
+       led.obj                        96     12        0      
+       task.obj                       0      0         44     
+    +--+------------------------------+------+---------+---------+
+       Total:                         2868   866       114    
+                                                              
+    C:/ti/TivaWare_C_Series-2.2.0.295/driverlib/ccs/Debug/driverlib.lib
+       sysctl.obj                     638    108       0      
+       gpio.obj                       544    144       0      
+       uart.obj                       148    0         0      
+       systick.obj                    56     0         0      
+    +--+------------------------------+------+---------+---------+
+       Total:                         1386   252       0      
+                                                              
+    C:\ti\ccs1020\ccs\tools\compiler\ti-cgt-arm_20.2.2.LTS\lib\rtsv7M4_T_le_v4SPD16_eabi.lib
+       memcpy_t2.asm.obj              156    0         0      
+       copy_decompress_lzss.c.obj     104    0         0      
+       autoinit.c.obj                 68     0         0      
+       u_divt2.asm.obj                64     0         0      
+       boot_cortex_m.c.obj            52     0         0      
+       copy_zero_init.c.obj           28     0         0      
+       copy_decompress_none.c.obj     14     0         0      
+       exit.c.obj                     4      0         0      
+       pre_init.c.obj                 4      0         0      
+       div0.asm.obj                   2      0         0      
+    +--+------------------------------+------+---------+---------+
+       Total:                         496    0         0      
+                                                              
+       Stack:                         0      0         512    
+       Linker Generated:              0      110       0      
+    +--+------------------------------+------+---------+---------+
+       Grand Total:                   4750   1228      626    
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 00001758 records: 2, size/record: 8, table size: 16
+	.data: load addr=000016f8, load size=0000004a bytes, run addr=20000200, run size=00000074 bytes, compression=lzss
+	.bss: load addr=00001750, load size=00000008 bytes, run addr=20000274, run size=00000004 bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 00001744 records: 3, size/record: 4, table size: 12
+	index: 0, handler: __TI_decompress_lzss
+	index: 1, handler: __TI_decompress_none
+	index: 2, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address   name                          
+-------   ----                          
+000014f7  C$$EXIT                       
+000013c9  GPIODirModeSet                
+00000919  GPIOPadConfigSet              
+00001211  GPIOPinConfigure              
+000014db  GPIOPinRead                   
+00001431  GPIOPinTypeGPIOOutput         
+0000144b  GPIOPinTypeUART               
+000014e1  GPIOPinWrite                  
+00000f29  InitConsole                   
+000014bb  ResetISR                      
+00000ba3  SchedulerElapsedTicksCalc     
+00000b93  SchedulerElapsedTicksGet      
+00000a9d  SchedulerInit                 
+00000ab9  SchedulerRun                  
+00000a85  SchedulerSysTickIntHandler    
+00000b6b  SchedulerTaskDisable          
+00000b13  SchedulerTaskEnable           
+00000b8d  SchedulerTickCountGet         
+00000d1d  SysCtlClockGet                
+00000e35  SysCtlClockSet                
+000014e7  SysCtlDelay                   
+00001361  SysCtlPeripheralEnable        
+00001329  SysCtlPeripheralPresent       
+00001461  SysTickEnable                 
+00001475  SysTickIntEnable              
+0000149d  SysTickPeriodSet              
+000014c7  UARTCharGet                   
+000014d1  UARTCharPut                   
+000014ed  UARTClockSourceSet            
+0000125d  UARTConfigSetExpClk           
+000013f5  UARTDisable                   
+00001489  UARTEnable                    
+0000026d  UARTStdioConfig               
+000003b3  UARTgetc                      
+000002f9  UARTgets                      
+000006d3  UARTprintf                    
+000003d9  UARTvprintf                   
+000002b3  UARTwrite                     
+20000200  __STACK_END                   
+00000200  __STACK_SIZE                  
+20000200  __STACK_TOP                   
+00001758  __TI_CINIT_Base               
+00001768  __TI_CINIT_Limit              
+00001744  __TI_Handler_Table_Base       
+00001750  __TI_Handler_Table_Limit      
+000012a5  __TI_auto_init_nobinit_nopinit
+00001149  __TI_decompress_lzss          
+000014ad  __TI_decompress_none          
+ffffffff  __TI_pprof_out_hndl           
+ffffffff  __TI_prof_data_size           
+ffffffff  __TI_prof_data_start          
+00000000  __TI_static_base__            
+00001415  __TI_zero_init_nomemset       
+000012a3  __aeabi_idiv0                 
+000012a3  __aeabi_ldiv0                 
+00001011  __aeabi_memcpy                
+00001011  __aeabi_memcpy4               
+00001011  __aeabi_memcpy8               
+000012e9  __aeabi_uidiv                 
+000012e9  __aeabi_uidivmod              
+ffffffff  __binit__                     
+ffffffff  __c_args__                    
+UNDEFED   __mpu_init                    
+20000000  __stack                       
+20000000  __start___llvm_prf_cnts       
+20000000  __stop___llvm_prf_cnts        
+00001395  _c_int00_noargs               
+UNDEFED   _system_post_cinit            
+000014f3  _system_pre_init              
+000014f7  abort                         
+ffffffff  binit                         
+00000000  g_pfnVectors                  
+20000200  g_psSchedulerTable            
+20000270  g_ui32SchedulerNumTasks       
+000011c3  ledControl                    
+2000025c  ledGTimer                     
+00000713  ledGreenStateUpdate           
+00000709  ledGreenTask                  
+000011b1  ledInit                       
+000016e0  ledPin                        
+00000beb  ledRedStateMachineUpdate      
+00000be1  ledRedTask                    
+00000f65  main                          
+00001011  memcpy                        
+000010ad  switchInit                    
+000010f5  switchState                   
+20000260  taskgreenledcounter           
+20000258  taskredledFlag                
+20000254  taskredledcounter             
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address   name                          
+-------   ----                          
+00000000  __TI_static_base__            
+00000000  g_pfnVectors                  
+00000200  __STACK_SIZE                  
+0000026d  UARTStdioConfig               
+000002b3  UARTwrite                     
+000002f9  UARTgets                      
+000003b3  UARTgetc                      
+000003d9  UARTvprintf                   
+000006d3  UARTprintf                    
+00000709  ledGreenTask                  
+00000713  ledGreenStateUpdate           
+00000919  GPIOPadConfigSet              
+00000a85  SchedulerSysTickIntHandler    
+00000a9d  SchedulerInit                 
+00000ab9  SchedulerRun                  
+00000b13  SchedulerTaskEnable           
+00000b6b  SchedulerTaskDisable          
+00000b8d  SchedulerTickCountGet         
+00000b93  SchedulerElapsedTicksGet      
+00000ba3  SchedulerElapsedTicksCalc     
+00000be1  ledRedTask                    
+00000beb  ledRedStateMachineUpdate      
+00000d1d  SysCtlClockGet                
+00000e35  SysCtlClockSet                
+00000f29  InitConsole                   
+00000f65  main                          
+00001011  __aeabi_memcpy                
+00001011  __aeabi_memcpy4               
+00001011  __aeabi_memcpy8               
+00001011  memcpy                        
+000010ad  switchInit                    
+000010f5  switchState                   
+00001149  __TI_decompress_lzss          
+000011b1  ledInit                       
+000011c3  ledControl                    
+00001211  GPIOPinConfigure              
+0000125d  UARTConfigSetExpClk           
+000012a3  __aeabi_idiv0                 
+000012a3  __aeabi_ldiv0                 
+000012a5  __TI_auto_init_nobinit_nopinit
+000012e9  __aeabi_uidiv                 
+000012e9  __aeabi_uidivmod              
+00001329  SysCtlPeripheralPresent       
+00001361  SysCtlPeripheralEnable        
+00001395  _c_int00_noargs               
+000013c9  GPIODirModeSet                
+000013f5  UARTDisable                   
+00001415  __TI_zero_init_nomemset       
+00001431  GPIOPinTypeGPIOOutput         
+0000144b  GPIOPinTypeUART               
+00001461  SysTickEnable                 
+00001475  SysTickIntEnable              
+00001489  UARTEnable                    
+0000149d  SysTickPeriodSet              
+000014ad  __TI_decompress_none          
+000014bb  ResetISR                      
+000014c7  UARTCharGet                   
+000014d1  UARTCharPut                   
+000014db  GPIOPinRead                   
+000014e1  GPIOPinWrite                  
+000014e7  SysCtlDelay                   
+000014ed  UARTClockSourceSet            
+000014f3  _system_pre_init              
+000014f7  C$$EXIT                       
+000014f7  abort                         
+000016e0  ledPin                        
+00001744  __TI_Handler_Table_Base       
+00001750  __TI_Handler_Table_Limit      
+00001758  __TI_CINIT_Base               
+00001768  __TI_CINIT_Limit              
+20000000  __stack                       
+20000000  __start___llvm_prf_cnts       
+20000000  __stop___llvm_prf_cnts        
+20000200  __STACK_END                   
+20000200  __STACK_TOP                   
+20000200  g_psSchedulerTable            
+20000254  taskredledcounter             
+20000258  taskredledFlag                
+2000025c  ledGTimer                     
+20000260  taskgreenledcounter           
+20000270  g_ui32SchedulerNumTasks       
+ffffffff  __TI_pprof_out_hndl           
+ffffffff  __TI_prof_data_size           
+ffffffff  __TI_prof_data_start          
+ffffffff  __binit__                     
+ffffffff  __c_args__                    
+ffffffff  binit                         
+UNDEFED   __mpu_init                    
+UNDEFED   _system_post_cinit            
+
+[89 symbols]

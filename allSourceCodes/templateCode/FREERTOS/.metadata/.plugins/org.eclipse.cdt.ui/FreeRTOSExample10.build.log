@@ -1,0 +1,19 @@
+
+**** Build of configuration Debug for project FreeRTOSExample10 ****
+
+"D:\\ccs\\utils\\bin\\gmake" -k -j 4 all -O 
+ 
+Building file: "../Application/freertos_demo.c"
+Invoking: Arm Compiler
+"D:/ccs/tools/compiler/ti-cgt-arm_20.2.4.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --include_path="D:/CODE COMPOSER STUDIO/FREERTOS/FreeRTOSExample10" --include_path="C:/Users/Dell/Desktop/EmbeddedProgExample/EmbeddedProgExample/FreeRTOSExample10/FreeRTOSSource" --include_path="C:/Users/Dell/Desktop/EmbeddedProgExample/EmbeddedProgExample/FreeRTOSExample10/drivers" --include_path="C:/Users/Dell/Desktop/EmbeddedProgExample/EmbeddedProgExample/FreeRTOSExample10" --include_path="C:/Users/Dell/Desktop/EmbeddedProgExample/EmbeddedProgExample/FreeRTOSExample10/Application" --include_path="C:/Users/Dell/Desktop/viduFreeRTOS/vdtrenlop/FreeRTOS/include" --include_path="C:/ti/TivaWare_C_Series-2.2.0.295" --include_path="D:/TIVAWARE" --include_path="D:/ccs/tools/compiler/ti-cgt-arm_20.2.4.LTS/include" --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi --preproc_with_compile --preproc_dependency="Application/freertos_demo.d_raw" --obj_directory="Application"  "../Application/freertos_demo.c"
+"../Application/freertos_demo.c", line 41: warning #48-D: incompatible redefinition of macro "TARGET_IS_BLIZZARD_RB1"
+Finished building: "../Application/freertos_demo.c"
+ 
+Building target: "FreeRTOSExample10.out"
+Invoking: Arm Linker
+"D:/ccs/tools/compiler/ti-cgt-arm_20.2.4.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"FreeRTOSExample10.map" --heap_size=0 --stack_size=512 -i"D:/ccs/tools/compiler/ti-cgt-arm_20.2.4.LTS/lib" -i"D:/ccs/tools/compiler/ti-cgt-arm_20.2.4.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="FreeRTOSExample10_linkInfo.xml" --rom_model -o "FreeRTOSExample10.out" "./interrupt.obj" "./tm4c123gh6pm_startup_ccs.obj" "./Application/freertos_demo.obj" "./Application/ledGreenStateMachine.obj" "./Application/ledRedStateMachine.obj" "./Application/led_task.obj" "./Application/switch_task.obj" "./FreeRTOSSource/croutine.obj" "./FreeRTOSSource/event_groups.obj" "./FreeRTOSSource/heap_2.obj" "./FreeRTOSSource/list.obj" "./FreeRTOSSource/port.obj" "./FreeRTOSSource/portasm.obj" "./FreeRTOSSource/queue.obj" "./FreeRTOSSource/stream_buffer.obj" "./FreeRTOSSource/tasks.obj" "./FreeRTOSSource/timers.obj" "./drivers/buttons.obj" "./drivers/led.obj" "./drivers/rgb.obj" "./drivers/switches.obj" "./drivers/uartstdio.obj" "D:/TIVAWARE/driverlib/ccs/Debug/driverlib.lib" "../tm4c123gh6pm.cmd"  -llibc.a 
+<Linking>
+Finished building target: "FreeRTOSExample10.out"
+ 
+
+**** Build Finished ****
