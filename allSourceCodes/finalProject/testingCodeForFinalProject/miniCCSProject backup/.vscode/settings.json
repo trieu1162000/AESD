@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "rsystem_fsm_api.h": "c",
+        "actions_api.h": "c",
+        "events.h": "c",
+        "stdbool.h": "c",
+        "string.h": "c",
+        "bsystem_fsm_api.h": "c",
+        "stdint.h": "c",
+        "config_peripherals_api.h": "c",
+        "timer_handler_api.h": "c",
+        "leds.h": "c",
+        "lcd_i2c_api.h": "c",
+        "rc522_api.h": "c",
+        "uart_api.h": "c",
+        "leds_buzzer_lock.h": "c",
+        "esystem_fsm_api.h": "c",
+        "system_fsm_api.h": "c",
+        "queue_cards_api.h": "c",
+        "eeprom_api.h": "c"
+    }
+}

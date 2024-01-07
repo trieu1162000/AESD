@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "uart_api.h": "c",
+        "system_fsm_api.h": "c",
+        "timer_handler_api.h": "c",
+        "actions_api.h": "c"
+    }
+}
